@@ -26,6 +26,32 @@
 .avatar-back-text { color: #fff; font-size: .72rem; line-height: 1.55; text-align: center; padding: 8px; }
 .poke-hint { text-align: center; color: #5a6fb5; font-size: .82rem; margin: 6px 0 2px; animation: pokepulse 2.2s infinite; }
 @keyframes pokepulse { 0%, 100% { opacity: .55 } 50% { opacity: 1 } }
+
+/* 作者卡闲置 5 秒翻面成相册轮播 */
+.card-widget.card-info { position: relative; perspective: 1100px; }
+.card-widget.card-info .card-content {
+  transition: transform .7s cubic-bezier(.4,.2,.2,1);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transform: rotateY(0deg);
+}
+.card-widget.card-info.card-show-album .card-content { transform: rotateY(180deg); }
+.card-album-carousel {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 14px; box-sizing: border-box;
+  transform: rotateY(180deg);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: transform .7s cubic-bezier(.4,.2,.2,1);
+}
+.card-widget.card-info.card-show-album .card-album-carousel { transform: rotateY(0deg); }
+.carousel-title { font-size: .8rem; color: #2b3a67; margin-bottom: 10px; font-weight: 600; }
+.carousel-img-wrap { width: 100%; display: flex; justify-content: center; }
+.carousel-img {
+  max-width: 100%; max-height: 170px; border-radius: 12px;
+  box-shadow: 0 6px 18px -6px rgba(30,50,120,.35);
+  transition: opacity .35s ease; object-fit: cover;
+}
+.carousel-cap { font-size: .78rem; color: #4a5a8a; margin-top: 10px; }
 .card-widget.card-info .author-info__name {
   color: #2b3a67 !important;
 }

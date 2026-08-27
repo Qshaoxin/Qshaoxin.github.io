@@ -1,4 +1,6 @@
 if theme.aside.card_author.enable
+  - let idlePhotos = []
+  - if (site.data.album) site.data.album.forEach(function (a) { (a.album_list || []).forEach(function (it) { (it.image || []).forEach(function (u) { idlePhotos.push({ u: url_for(u), n: a.class_name }) }) }) })
   .card-widget.card-info
     .card-content
       if theme.author_status.enable
@@ -17,4 +19,11 @@ if theme.aside.card_author.enable
             h1.author-info__name=config.author
             .author-info__desc=config.subtitle
           .card-info-social-icons.is-center
-            !=fragment_cache('social', function(){return partial('includes/header/social')}) 
+            !=fragment_cache('social', function(){return partial('includes/header/social')})
+    if idlePhotos.length
+      .card-album-carousel#card-album-carousel(data-photos=JSON.stringify(idlePhotos))
+        .carousel-title 📸 相册速览
+        .carousel-img-wrap
+          img.carousel-img(src=idlePhotos[0].u, alt=idlePhotos[0].n)
+        .carousel-cap=idlePhotos[0].n
+
