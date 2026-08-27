@@ -368,11 +368,19 @@ const server = http.createServer(async (req, res) => {
       const b = await readJson(req);
       const msg = (b.message || "").trim() || `发布更新 ${now().slice(0, 16)}`;
       const st = run("git status --short");
-      if (!st.trim()) return json(res, 200, { ok: true, output: "没有需要发布的变更，网站已是最新。", pushed: false });
-      run("git add -A");
-      run(`git commit -m "${msg.replace(/"/g, " ")}"`);
+      let unpushed = "";
+      try { unpushed = run("git log @{u}..HEAD --oneline"); } catch (e) { unpushed = ""; }
+      if (!st.trim() && !unpushed.trim()) return json(res, 200, { ok: true, output: "没有需要发布的变更，网站已是最新。", pushed: false });
+      let commitInfo = "";
+      if (st.trim()) {
+        run("git add -A");
+        run(`git commit -m "${msg.replace(/"/g, " ")}"`);
+        commitInfo = "已提交新修改。";
+      } else {
+        commitInfo = "发现未推送的提交。";
+      }
       const out = run("git push");
-      return json(res, 200, { ok: true, output: out || "推送完成。", pushed: true });
+      return json(res, 200, { ok: true, output: commitInfo + (out || "推送完成。"), pushed: true });
     }
     res.writeHead(404); res.end("not found");
   } catch (e) {
