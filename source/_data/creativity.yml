@@ -1,0 +1,38 @@
+- class_name: 技能
+  creativity_list:
+    - name: Vue
+      color: "#42b883"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg
+    - name: React
+      color: "#222"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg
+    - name: Node
+      color: "#333"
+      icon: https://npm.elemecdn.com/anzhiyu-blog@2.1.1/img/svg/node-logo.svg
+    - name: TypeScript
+      color: "#2f74c0"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg
+    - name: JavaScript
+      color: "#f7cb4f"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg
+    - name: HTML5
+      color: "#e9572b"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg
+    - name: CSS3
+      color: "#2c51db"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg
+    - name: Git
+      color: "#df5b40"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg
+    - name: Python
+      color: "#fff"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg
+    - name: Docker
+      color: "#57b6e6"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg
+    - name: Hexo
+      color: "#0e2a3a"
+      icon: https://cdn.jsdelivr.net/gh/devicons/devicon/icons/hexo/hexo-original.svg
+    - name: Vite
+      color: "#937df7"
+      icon: https://npm.elemecdn.com/anzhiyu-blog@2.0.8/img/svg/vite-logo.svg
