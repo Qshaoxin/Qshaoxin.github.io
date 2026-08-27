@@ -42,6 +42,26 @@ function run(cmd) {
   try { return execSync(cmd, { cwd: ROOT, encoding: "utf8", maxBuffer: 10 * 1024 * 1024, timeout: 5 * 60 * 1000 }); }
   catch (e) { throw new Error((e.stdout || "") + (e.stderr || "") + e.message); }
 }
+function detectWinProxy() {
+  try {
+    const reg = 'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ';
+    const enabled = execSync(reg + "ProxyEnable", { encoding: "utf8" });
+    if (!/0x1\b/.test(enabled)) return null;
+    const out = execSync(reg + "ProxyServer", { encoding: "utf8" });
+    const m = out.match(/ProxyServer\s+REG_SZ\s+(\S+)/);
+    return m ? m[1] : null;
+  } catch (e) { return null; }
+}
+function gitPush() {
+  try { return run("git push"); }
+  catch (e1) {
+    const p = detectWinProxy();
+    if (p) {
+      try { return run(`git -c http.proxy=http://${p} push`); } catch (e2) { throw e1; }
+    }
+    throw e1;
+  }
+}
 function readBody(req) {
   return new Promise(resolve => {
     const chunks = [];
@@ -379,7 +399,7 @@ const server = http.createServer(async (req, res) => {
       } else {
         commitInfo = "发现未推送的提交。";
       }
-      const out = run("git push");
+      const out = gitPush();
       return json(res, 200, { ok: true, output: commitInfo + (out || "推送完成。"), pushed: true });
     }
     res.writeHead(404); res.end("not found");
