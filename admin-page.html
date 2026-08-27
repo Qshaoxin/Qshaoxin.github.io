@@ -93,8 +93,13 @@ input[type=text]:focus { border-color: var(--main); }
 .tb-sep { width:1px; background:var(--border); margin:2px 4px; }
 #rich-editor, #page-rich-editor {
   flex:1; background:#fafbff; border:1.5px solid var(--border); border-radius:10px; padding:16px 18px;
-  outline:none; overflow-y:auto; min-height:260px; font-size:.95rem; line-height:1.8; transition:border-color .2s;
+  outline:none; overflow-y:auto; min-height:220px; height:340px; resize:vertical; max-height:75vh;
+  font-size:.95rem; line-height:1.8; transition:border-color .2s;
 }
+.splitter { cursor: col-resize; position:relative; width:6px; }
+.splitter::after { content:""; position:absolute; left:2px; top:50%; transform:translateY(-50%);
+  width:2px; height:56px; border-radius:2px; background:var(--border); transition:background .2s; }
+.splitter:hover::after { background:var(--main); }
 #rich-editor:focus, #page-rich-editor:focus { border-color:var(--main); }
 #rich-editor:empty::before, #page-rich-editor:empty::before { content:attr(data-ph); color:#b3bacb; }
 .md h1,.md h2,.md h3 { margin:.8em 0 .5em; }
@@ -810,6 +815,35 @@ async function publish() {
 function closePub() { $("mask").classList.remove("show"); }
 
 refresh();
+
+/* ---------- 可拖拽布局 ---------- */
+(function initSplitter() {
+  const wrap = document.querySelector("#view-posts .wrap");
+  if (!wrap) return;
+  const right = wrap.children[1];
+  const sp = document.createElement("div");
+  sp.className = "splitter";
+  sp.title = "拖动调整宽度";
+  wrap.insertBefore(sp, right);
+  const saved = localStorage.getItem("blog-admin-left-w");
+  if (saved) wrap.style.gridTemplateColumns = saved + "px 6px 1fr";
+  sp.addEventListener("mousedown", e => {
+    e.preventDefault();
+    document.body.style.userSelect = "none";
+    const move = ev => {
+      const w = Math.min(Math.max(ev.clientX - wrap.getBoundingClientRect().left, 180), Math.min(600, window.innerWidth - 500));
+      wrap.style.gridTemplateColumns = w + "px 6px 1fr";
+      localStorage.setItem("blog-admin-left-w", w);
+    };
+    const up = () => {
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+  });
+})();
 </script>
 </body>
 </html>
