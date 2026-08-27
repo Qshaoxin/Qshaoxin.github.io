@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>博客后台</title>
+<style>
+:root {
+  --main: #425aef; --main-hover: #1f3bd8; --bg: #f7f9fe; --card: #fff;
+  --text: #363636; --text-light: #8992a6; --border: #e3e8f7;
+  --shadow: 0 8px 16px -6px rgba(28,44,63,.08); --radius: 12px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+#nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 60px; background: rgba(255,255,255,.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; font-weight: 600; }
+.brand .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(120deg,#425aef,#7a5cf0);
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+.brand small { font-size:.75rem; color:var(--text-light); font-weight:400; }
+.nav-right { display: flex; align-items: center; gap: 14px; }
+#dirty-dot { font-size: .82rem; color: var(--text-light); }
+#dirty-dot.has { color: #f0a020; font-weight: 600; }
+.btn { border: none; cursor: pointer; font-family: var(--font); border-radius: 10px; padding: 9px 20px; font-size: .92rem;
+  transition: all .25s ease; display: inline-flex; align-items: center; gap: 6px; }
+.btn-main { background: var(--main); color: #fff; box-shadow: 0 4px 12px -4px rgba(66,90,239,.5); }
+.btn-main:hover { background: var(--main-hover); transform: translateY(-1px); }
+.btn-main:disabled { background: #a9b5f0; cursor: wait; transform: none; }
+.btn-ghost { background: transparent; color: var(--main); border: 1.5px solid var(--main) !important; }
+.btn-ghost:hover { background: rgba(66,90,239,.07); }
+.btn-danger-ghost { background: transparent; color: #e05a5a; border: 1.5px solid #e05a5a !important; }
+.btn-danger-ghost:hover { background: rgba(224,90,90,.07); }
+.btn-sm { padding: 6px 13px; font-size: .84rem; border-radius: 8px; }
+.tabs { display: flex; gap: 10px; max-width: 1280px; margin: 20px auto 0; padding: 0 24px; flex-wrap: wrap; }
+.tab { border: none; cursor: pointer; font-family: var(--font); background: #fff; color: var(--text-light);
+  border-radius: 999px; padding: 9px 22px; font-size: .92rem; box-shadow: var(--shadow); transition: all .2s; }
+.tab:hover { color: var(--main); }
+.tab.active { background: linear-gradient(120deg,#425aef,#7a5cf0); color: #fff; box-shadow: 0 4px 12px -4px rgba(66,90,239,.5); }
+.wrap { display: grid; grid-template-columns: 320px 1fr; gap: 20px; max-width: 1280px; margin: 20px auto; padding: 0 24px; }
+.wrap.one { grid-template-columns: 1fr; }
+@media (max-width: 960px) { .wrap { grid-template-columns: 1fr; } }
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  border: 1px solid rgba(227,232,247,.6); padding: 20px; }
+.card-title { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.card-title .tip { color: var(--main); font-size: .78rem; font-weight: 700; letter-spacing: 2px; }
+.card-title h2 { font-size: 1.05rem; }
+.view { display: none; }
+.view.on { display: grid; }
+#post-list { display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 300px); overflow-y: auto; }
+.post-item { padding: 12px 14px; border-radius: 10px; cursor: pointer; border: 1.5px solid transparent; transition: all .2s ease; background: #fafbff; }
+.post-item:hover { border-color: rgba(66,90,239,.4); }
+.post-item.active { border-color: var(--main); background: rgba(66,90,239,.06); }
+.post-item .t { font-weight: 600; font-size: .95rem; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-item .d { font-size: .78rem; color: var(--text-light); }
+.new-btn { width: 100%; justify-content: center; margin-bottom: 14px; }
+#editor-card { min-height: calc(100vh - 210px); display: flex; flex-direction: column; }
+#empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-light); gap: 12px; padding: 60px 0; }
+#empty .big { font-size: 3rem; }
+.ed-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.ed-row.grow-1 { flex: 1; min-width: 200px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: .8rem; color: var(--text-light); font-weight: 600; }
+input[type=text] { font-family: var(--font); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 13px;
+  font-size: .92rem; color: var(--text); background: #fafbff; transition: border-color .2s; outline: none; width: 100%; }
+input[type=text]:focus { border-color: var(--main); }
+#title { font-size: 1.15rem !important; font-weight: 600; }
+.editor-body { flex: 1; display: flex; gap: 14px; min-height: 340px; }
+#content { flex: 1; font-family: "Cascadia Code", Consolas, monospace; font-size: .9rem; line-height: 1.75;
+  border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; resize: none; outline: none;
+  background: #fafbff; color: var(--text); min-height: 100%; }
+#content:focus { border-color: var(--main); }
+#preview { flex: 1; overflow-y: auto; border: 1.5px dashed var(--border); border-radius: 10px; padding: 14px 20px; }
+#preview.hidden { display: none; }
+.md h1,.md h2,.md h3 { margin:.8em 0 .5em; } .md h1{font-size:1.5rem} .md h2{font-size:1.25rem} .md h3{font-size:1.08rem}
+.md p { margin:.5em 0; line-height:1.8; }
+.md pre { background:#282c34; color:#abb2bf; padding:14px; border-radius:10px; overflow-x:auto; margin:.7em 0; }
+.md code { font-family: Consolas, monospace; font-size:.86em; }
+.md :not(pre) > code { background:rgba(66,90,239,.1); color:var(--main); padding:2px 6px; border-radius:5px; }
+.md blockquote { border-left:4px solid var(--main); background:rgba(66,90,239,.05); padding:10px 16px; border-radius:0 8px 8px 0; margin:.7em 0; color:#5a6478; }
+.md ul,.md ol { padding-left:1.6em; margin:.5em 0; line-height:1.8; }
+.md a { color:var(--main); } .md img { max-width:100%; border-radius:10px; }
+.md hr { border:none; border-top:1px solid var(--border); margin:1em 0; }
+.ed-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 10px; flex-wrap: wrap; }
+.ed-footer .left { display: flex; gap: 10px; flex-wrap: wrap; }
+#save-hint { font-size:.82rem; color:#52c41a; opacity:0; transition:opacity .3s; }
+#save-hint.show { opacity:1; }
+textarea { font-family: var(--font); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px;
+  font-size: .92rem; line-height: 1.7; width: 100%; resize: vertical; outline: none; background: #fafbff; color: var(--text); }
+textarea:focus { border-color: var(--main); }
+.essay-item { display:flex; gap:14px; padding:14px 4px; border-bottom:1px dashed var(--border); }
+.essay-item:last-child { border-bottom:none; }
+.essay-item .avatar-sm { width:38px; height:38px; border-radius:50%; flex-shrink:0; background:linear-gradient(120deg,#425aef,#7a5cf0);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px; }
+.essay-item .body { flex:1; min-width:0; }
+.essay-item .content { font-size:.94rem; line-height:1.7; word-break:break-word; }
+.essay-item .meta { margin-top:6px; font-size:.76rem; color:var(--text-light); display:flex; gap:10px; align-items:center; }
+.essay-item .meta .del { color:#e05a5a; cursor:pointer; margin-left:auto; }
+.essay-item .thumbs img { width:96px; height:96px; object-fit:cover; border-radius:8px; margin-right:6px; }
+.thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.thumb { position:relative; }
+.thumb img { width:76px; height:76px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+.thumb .rm { position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%; background:#e05a5a; color:#fff;
+  border:none; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; }
+.album-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+.album-card { border-radius:12px; overflow:hidden; cursor:pointer; background:#fafbff; border:1.5px solid transparent; transition:all .2s; }
+.album-card:hover { border-color:rgba(66,90,239,.4); transform:translateY(-2px); }
+.album-card .cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+.album-card .info { padding:12px 14px; }
+.album-card .name { font-weight:600; margin-bottom:3px; }
+.album-card .desc { font-size:.8rem; color:var(--text-light); }
+.album-new { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  border:2px dashed var(--border); border-radius:12px; min-height:200px; cursor:pointer; color:var(--text-light); transition:all .2s; }
+.album-new:hover { border-color:var(--main); color:var(--main); }
+.photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+.photo-cell { position:relative; }
+.photo-cell img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; display:block; }
+.photo-cell .cap { font-size:.74rem; color:var(--text-light); margin-top:4px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.photo-cell .rm { position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(224,90,90,.92);
+  color:#fff; border:none; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.back-link { color:var(--main); cursor:pointer; font-size:.88rem; margin-bottom:14px; display:inline-block; }
+.settings-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; max-width:1280px; margin: 20px auto; padding: 0 24px; }
+.set-form .field { margin-bottom:14px; }
+.avatar-preview { width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:var(--shadow); }
+#mask { position:fixed; inset:0; background:rgba(30,38,60,.45); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:200; }
+#mask.show { display:flex; }
+.pub-box { background:#fff; border-radius:16px; padding:34px 40px; width:min(520px,90vw); box-shadow:0 20px 60px rgba(0,0,0,.25); text-align:center; }
+.spinner { width:46px; height:46px; margin:0 auto 18px; border:4px solid rgba(66,90,239,.18); border-top-color:var(--main);
+  border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.pub-box h3 { margin-bottom:8px; }
+.pub-box .sub { color:var(--text-light); font-size:.85rem; }
+.pub-box .out { margin-top:16px; text-align:left; background:#f6f8fd; border-radius:10px; padding:12px 14px; font-size:.8rem;
+  font-family:Consolas,monospace; max-height:220px; overflow-y:auto; white-space:pre-wrap; color:#5a6478; display:none; }
+.pub-box .actions { margin-top:20px; display:none; }
+.pub-box.done .spinner { display:none; }
+.pub-box.done .actions, .pub-box.done .out { display:block; }
+.pub-box.done::before { content:"✅"; font-size:46px; display:block; margin-bottom:12px; }
+.pub-box.fail.done::before { content:"❌"; }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="brand"><div class="logo">✎</div>博客后台<small>qshaoxin.github.io</small></div>
+  <div class="nav-right">
+    <span id="dirty-dot"></span>
+    <button class="btn btn-main" id="btn-publish" onclick="publish()">🚀 一键发布</button>
+  </div>
+</nav>
+
+<div class="tabs">
+  <button class="tab active" data-tab="posts" onclick="switchTab('posts')">📄 文章</button>
+  <button class="tab" data-tab="essays" onclick="switchTab('essays')">💬 闲言碎语</button>
+  <button class="tab" data-tab="albums" onclick="switchTab('albums')">🖼 相册集</button>
+  <button class="tab" data-tab="pages" onclick="switchTab('pages')">📑 页面</button>
+  <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ 站点设置</button>
+</div>
+
+<!-- 文章 -->
+<div class="wrap view on" id="view-posts">
+  <div class="card">
+    <button class="btn btn-ghost new-btn" onclick="newPost()">＋ 新建文章</button>
+    <div class="card-title"><span class="tip">ARCHIVES</span><h2>全部文章</h2><span id="post-count" style="color:var(--text-light);font-size:.82rem"></span></div>
+    <div id="post-list"></div>
+  </div>
+  <div class="card" id="editor-card">
+    <div id="empty"><div class="big">📝</div><div>选择左侧文章开始编辑，或点「新建文章」</div></div>
+    <div id="editor" style="display:none;flex:1;flex-direction:column">
+      <div class="ed-row">
+        <div class="field grow-1"><label>标题</label><input type="text" id="title" placeholder="文章标题"></div>
+        <div class="field" style="width:170px"><label>分类（逗号分隔）</label><input type="text" id="categories" placeholder="随笔"></div>
+        <div class="field" style="width:190px"><label>标签（逗号分隔）</label><input type="text" id="tags" placeholder="开始, 博客"></div>
+      </div>
+      <div class="editor-body">
+        <textarea id="content" placeholder="在这里用 Markdown 写文章…" oninput="renderPreview()"></textarea>
+        <div id="preview" class="hidden md"></div>
+      </div>
+      <div class="ed-footer">
+        <div class="left">
+          <button class="btn btn-ghost btn-sm" onclick="togglePreview()">👁 预览</button>
+          <button class="btn btn-ghost btn-sm" onclick="pickPostImage()">📷 插图</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="delPost()">🗑 删除</button>
+        </div>
+        <span id="save-hint">✓ 已保存</span>
+        <button class="btn btn-main" onclick="save()">💾 保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 闲言碎语 -->
+<div class="wrap one view" id="view-essays">
+  <div>
+    <div class="card">
+      <div class="card-title"><span class="tip">ESSAY</span><h2>发一条碎语</h2></div>
+      <textarea id="essay-content" rows="3" placeholder="这一刻的想法…（会显示在首页顶部的滚动条和闲言碎语页）"></textarea>
+      <div id="essay-imgs" class="thumbs"></div>
+      <div class="ed-footer">
+        <button class="btn btn-ghost btn-sm" onclick="pickEssayImage()">📷 添加图片</button>
+        <span style="font-size:.8rem;color:var(--text-light)">支持多图</span>
+        <button class="btn btn-main" onclick="saveEssay()">💬 发布碎语</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-title"><span class="tip">TIMELINE</span><h2>历史碎语</h2></div>
+      <div id="essay-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 相册集 -->
+<div class="wrap one view" id="view-albums">
+  <div>
+    <div class="card" id="album-home">
+      <div class="card-title"><span class="tip">ALBUM</span><h2>相册集</h2></div>
+      <div class="album-grid" id="album-grid"></div>
+    </div>
+    <div class="card" id="album-detail" style="display:none;margin-top:20px">
+      <span class="back-link" onclick="albumBack()">← 返回相册列表</span>
+      <div class="card-title"><span class="tip">PHOTOS</span><h2 id="album-title"></h2><span id="album-count" style="color:var(--text-light);font-size:.82rem"></span></div>
+      <div class="ed-row" style="margin-bottom:18px">
+        <div class="field grow-1"><label>照片说明</label><input type="text" id="photo-caption" placeholder="这张照片的故事（可留空）"></div>
+        <div class="field"><label>&nbsp;</label><button class="btn btn-ghost" onclick="pickAlbumImage()">📷 上传照片</button></div>
+        <div class="field"><label>&nbsp;</label><button class="btn btn-main" onclick="addAlbumPhoto()">＋ 添加到相册</button></div>
+      </div>
+      <div id="photo-imgs" class="thumbs" style="margin-bottom:6px"></div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 页面 -->
+<div class="wrap one view" id="view-pages">
+  <div>
+    <div class="card" id="page-home">
+      <div class="card-title"><span class="tip">PAGES</span><h2>站点页面</h2></div>
+      <div id="page-list" style="display:flex;gap:14px;flex-wrap:wrap"></div>
+    </div>
+    <div class="card" id="page-editor" style="display:none;margin-top:20px">
+      <span class="back-link" onclick="pageBack()">← 返回页面列表</span>
+      <div class="ed-row"><div class="field grow-1"><label>页面标题</label><input type="text" id="page-title"></div></div>
+      <textarea id="page-content" rows="16" oninput="renderPagePreview()" style="min-height:320px"></textarea>
+      <div id="page-preview" class="hidden md" style="margin-top:14px"></div>
+      <div class="ed-footer">
+        <button class="btn btn-ghost btn-sm" onclick="togglePagePreview()">👁 预览</button>
+        <span id="page-hint" style="font-size:.82rem;color:#52c41a"></span>
+        <button class="btn btn-main" onclick="savePage()">💾 保存页面</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="view" id="view-settings">
+  <div class="settings-grid" id="settings-form"></div>
+  <div style="max-width:1280px;margin:-10px auto 40px;padding:0 24px;display:flex;justify-content:flex-end">
+    <button class="btn btn-main" onclick="saveSettings()">💾 保存设置</button>
+  </div>
+</div>
+
+<div id="mask">
+  <div class="pub-box" id="pub-box">
+    <div class="spinner"></div>
+    <h3 id="pub-title">正在发布…</h3>
+    <div class="sub">提交并推送到 GitHub，之后网站约 1 分钟自动更新</div>
+    <div class="out" id="pub-out"></div>
+    <div class="actions"><button class="btn btn-main" onclick="closePub()">好的</button></div>
+  </div>
+</div>
+
+<input type="file" id="file-pick" accept="image/*" multiple style="display:none">
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script>
+let currentFile = null, dirty = false, currentTab = "posts";
+let essayImages = [], albumImages = [], currentAlbum = null, currentPage = null;
+let pagePreviewOn = false, postPreviewOn = false;
+window._avatar = "";
+const $ = id => document.getElementById(id);
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d;
+}
+function post(path, body) {
+  return api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+}
+async function uploadFiles(files, cb) {
+  for (const f of files) {
+    const buf = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsArrayBuffer(f); });
+    const d = await api("/api/upload?name=" + encodeURIComponent(f.name), { method: "POST", body: buf });
+    cb(d.url);
+  }
+}
+function mdRender(raw) {
+  return window.marked ? marked.parse(raw) : "<pre>" + String(raw).replace(/</g, "&lt;") + "</pre>";
+}
+
+function switchTab(name) {
+  currentTab = name;
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("on"));
+  $("view-" + name).classList.add("on");
+  if (name === "essays") loadEssays();
+  if (name === "albums") loadAlbums();
+  if (name === "pages") loadPages();
+  if (name === "settings") loadSettings();
+  if (name === "posts") refresh();
+}
+
+/* ---------- 文章 ---------- */
+async function refresh() {
+  const d = await api("/api/posts");
+  const list = $("post-list");
+  list.innerHTML = "";
+  d.posts.forEach(p => {
+    const el = document.createElement("div");
+    el.className = "post-item" + (p.file === currentFile ? " active" : "");
+    el.innerHTML = '<div class="t"></div><div class="d"></div>';
+    el.querySelector(".t").textContent = p.title;
+    el.querySelector(".d").textContent = (p.date ? p.date.slice(0, 10) : "") + (p.categories.length ? " · " + p.categories.join("/") : "");
+    el.onclick = () => openPost(p.file);
+    list.appendChild(el);
+  });
+  $("post-count").textContent = d.posts.length ? "(" + d.posts.length + ")" : "";
+  refreshStatus();
+}
+async function refreshStatus() {
+  const s = await api("/api/status");
+  const dot = $("dirty-dot");
+  dot.textContent = s.dirty ? "● " + s.dirty + " 处未发布修改" : (s.last ? "✓ 已是最新" : "");
+  dot.className = s.dirty ? "has" : "";
+}
+async function openPost(file) {
+  if (!await confirmDiscard()) return;
+  const d = await api("/api/post?file=" + encodeURIComponent(file));
+  currentFile = file; dirty = false;
+  $("empty").style.display = "none"; $("editor").style.display = "flex";
+  $("title").value = d.title; $("categories").value = (d.categories || []).join(", ");
+  $("tags").value = (d.tags || []).join(", "); $("content").value = d.content;
+  renderPreview(); refresh();
+}
+function newPost() {
+  if (!confirmDiscard()) return;
+  currentFile = null; dirty = false;
+  $("empty").style.display = "none"; $("editor").style.display = "flex";
+  $("title").value = ""; $("categories").value = ""; $("tags").value = ""; $("content").value = "";
+  renderPreview(); refresh(); $("title").focus();
+}
+function confirmDiscard() {
+  if (!dirty || currentTab !== "posts") return Promise.resolve(true);
+  return Promise.resolve(confirm("当前文章有未保存的修改，确定放弃吗？"));
+}
+async function save() {
+  const d = await post("/api/save", {
+    file: currentFile, title: $("title").value,
+    categories: $("categories").value.split(",").map(s => s.trim()).filter(Boolean),
+    tags: $("tags").value.split(",").map(s => s.trim()).filter(Boolean),
+    content: $("content").value,
+  });
+  currentFile = d.file; dirty = false;
+  $("save-hint").classList.add("show"); setTimeout(() => $("save-hint").classList.remove("show"), 1600);
+  refresh();
+}
+async function delPost() {
+  if (!currentFile) return;
+  if (!confirm("确定删除这篇文章吗？删除后需发布才会同步到网站。")) return;
+  await post("/api/delete", { file: currentFile });
+  currentFile = null; $("editor").style.display = "none"; $("empty").style.display = "flex";
+  dirty = false; refresh();
+}
+function togglePreview() {
+  postPreviewOn = !postPreviewOn;
+  $("preview").classList.toggle("hidden", !postPreviewOn);
+  renderPreview();
+}
+function renderPreview() {
+  if (!postPreviewOn) return;
+  $("preview").innerHTML = mdRender($("content").value);
+}
+function pickPostImage() {
+  pickFiles(urls => { urls.forEach(u => insertAtCursor("content", "\\n![](" + u + ")\\n")); });
+}
+
+/* ---------- 闲言碎语 ---------- */
+async function loadEssays() {
+  const d = await api("/api/essays");
+  const box = $("essay-list");
+  box.innerHTML = d.essays.length ? "" : '<div style="color:var(--text-light);padding:20px;text-align:center">还没有碎语</div>';
+  d.essays.forEach(e => {
+    const el = document.createElement("div");
+    el.className = "essay-item";
+    el.innerHTML = '<div class="avatar-sm">💬</div><div class="body"><div class="content"></div><div class="thumbs"></div><div class="meta"><span></span><span class="del" title="删除">🗑 删除</span></div></div>';
+    el.querySelector(".content").textContent = e.content;
+    const th = el.querySelector(".thumbs");
+    (e.image || []).forEach(u => { const i = document.createElement("img"); i.src = u; i.loading = "lazy"; th.appendChild(i); });
+    el.querySelector(".meta span").textContent = (e.date || "") + (e.from ? " · " + e.from : "");
+    el.querySelector(".del").onclick = async () => { if (confirm("删除这条碎语？")) { await post("/api/essay/delete", { id: e.id }); loadEssays(); refreshStatus(); } };
+    box.appendChild(el);
+  });
+}
+function pickEssayImage() {
+  pickFiles(urls => { urls.forEach(u => { essayImages.push(u); $("essay-imgs").appendChild(mkThumb(u, () => { essayImages = essayImages.filter(x => x !== u); })); }); });
+}
+async function saveEssay() {
+  const content = $("essay-content").value.trim();
+  if (!content && !essayImages.length) return alert("写点什么再发吧～");
+  await post("/api/essay/add", { content: content || "分享图片", images: essayImages });
+  $("essay-content").value = ""; essayImages = []; $("essay-imgs").innerHTML = "";
+  loadEssays(); refreshStatus();
+}
+
+/* ---------- 相册 ---------- */
+async function loadAlbums() {
+  const d = await api("/api/albums");
+  const grid = $("album-grid");
+  grid.innerHTML = "";
+  d.albums.forEach(a => {
+    const el = document.createElement("div");
+    el.className = "album-card";
+    el.innerHTML = '<img class="cover" loading="lazy"><div class="info"><div class="name"></div><div class="desc"></div></div>';
+    el.querySelector(".cover").src = a.cover;
+    el.querySelector(".name").textContent = a.class_name + "（" + a.photos + " 张）";
+    el.querySelector(".desc").textContent = a.description || "";
+    el.onclick = () => openAlbum(a);
+    grid.appendChild(el);
+  });
+  const add = document.createElement("div");
+  add.className = "album-new";
+  add.innerHTML = '<div style="font-size:2rem">＋</div><div>新建相册</div>';
+  add.onclick = newAlbum;
+  grid.appendChild(add);
+}
+async function newAlbum() {
+  const name = prompt("相册名称（比如：旅行 / 日常）：");
+  if (!name) return;
+  const description = prompt("相册描述（可留空）：", name) || "";
+  try { await post("/api/album/create", { name, description }); loadAlbums(); refreshStatus(); }
+  catch (e) { alert("创建失败：" + e.message); }
+}
+function openAlbum(a) {
+  currentAlbum = a;
+  $("album-home").style.display = "none";
+  $("album-detail").style.display = "block";
+  $("album-title").textContent = a.class_name;
+  renderPhotos(a);
+}
+function albumBack() {
+  $("album-detail").style.display = "none";
+  $("album-home").style.display = "block";
+  loadAlbums();
+}
+function renderPhotos(a) {
+  $("album-count").textContent = a.photos ? "(" + a.photos + " 张)" : "";
+  const grid = $("photo-grid");
+  grid.innerHTML = "";
+  if (!a.album_list.length) grid.innerHTML = '<div style="color:var(--text-light);padding:10px">还没有照片，上传几张吧～</div>';
+  a.album_list.forEach((it, itemId) => {
+    (it.image || []).forEach((u, imgIdx) => {
+      const cell = document.createElement("div");
+      cell.className = "photo-cell";
+      cell.innerHTML = '<img loading="lazy"><div class="cap"></div><button class="rm" title="删除">✕</button>';
+      cell.querySelector("img").src = u;
+      cell.querySelector(".cap").textContent = it.content || "";
+      cell.querySelector(".rm").onclick = async () => {
+        if (!confirm("删除这张照片？")) return;
+        await post("/api/album/photo/delete", { path_name: currentAlbum.path_name, item: itemId, img: imgIdx });
+        openAlbum((await api("/api/albums")).albums.find(x => x.path_name === currentAlbum.path_name));
+        refreshStatus();
+      };
+      grid.appendChild(cell);
+    });
+  });
+}
+function pickAlbumImage() {
+  pickFiles(urls => { urls.forEach(u => { albumImages.push(u); $("photo-imgs").appendChild(mkThumb(u, () => { albumImages = albumImages.filter(x => x !== u); })); }); });
+}
+async function addAlbumPhoto() {
+  if (!albumImages.length) return alert("先上传照片（点「上传照片」选择图片）");
+  await post("/api/album/photo/add", { path_name: currentAlbum.path_name, content: $("photo-caption").value, images: albumImages });
+  albumImages = []; $("photo-imgs").innerHTML = ""; $("photo-caption").value = "";
+  openAlbum((await api("/api/albums")).albums.find(x => x.path_name === currentAlbum.path_name));
+  refreshStatus();
+}
+
+/* ---------- 页面 ---------- */
+function loadPages() {
+  const items = [["about", "🙋 关于本人"], ["comments", "💌 留言板"]];
+  const box = $("page-list");
+  box.innerHTML = "";
+  items.forEach(([key, label]) => {
+    const b = document.createElement("button");
+    b.className = "btn btn-ghost";
+    b.textContent = label;
+    b.onclick = () => openPage(key);
+    box.appendChild(b);
+  });
+}
+async function openPage(key) {
+  const d = await api("/api/page?key=" + key);
+  currentPage = key;
+  $("page-home").style.display = "none";
+  $("page-editor").style.display = "block";
+  $("page-title").value = d.title;
+  $("page-content").value = d.content;
+}
+function pageBack() { $("page-editor").style.display = "none"; $("page-home").style.display = "block"; }
+async function savePage() {
+  await post("/api/page/save", { key: currentPage, title: $("page-title").value, content: $("page-content").value });
+  $("page-hint").textContent = "✓ 已保存 " + new Date().toLocaleTimeString();
+  setTimeout(() => $("page-hint").textContent = "", 2000);
+  refreshStatus();
+}
+function togglePagePreview() {
+  pagePreviewOn = !pagePreviewOn;
+  $("page-preview").classList.toggle("hidden", !pagePreviewOn);
+  renderPagePreview();
+}
+function renderPagePreview() {
+  if (!pagePreviewOn) return;
+  $("page-preview").innerHTML = mdRender($("page-content").value);
+}
+
+/* ---------- 设置 ---------- */
+async function loadSettings() {
+  const s = await api("/api/settings");
+  window._avatar = s.avatar || "";
+  const f = $("settings-form");
+  f.innerHTML = "";
+  const card = (tip, title) => {
+    const el = document.createElement("div");
+    el.className = "card set-form";
+    el.innerHTML = '<div class="card-title"><span class="tip">' + tip + '</span><h2>' + title + '</h2></div>';
+    f.appendChild(el);
+    return el;
+  };
+  const fld = (parent, label, id, val, ph) => {
+    const d = document.createElement("div");
+    d.className = "field";
+    d.innerHTML = '<label>' + label + '</label><input type="text" id="' + id + '" placeholder="' + (ph || "") + '">';
+    d.querySelector("input").value = val == null ? "" : val;
+    parent.appendChild(d);
+  };
+  const c1 = card("SITE", "站点信息");
+  fld(c1, "站点标题", "set-title", s.site.title);
+  fld(c1, "副标题", "set-subtitle", s.site.subtitle);
+  fld(c1, "描述（SEO）", "set-desc", s.site.description);
+  fld(c1, "作者", "set-author", s.site.author);
+  const c2 = card("HOME", "首页横幅");
+  fld(c2, "大标题（第一行）", "set-ht-title", s.home_top.title);
+  fld(c2, "大标题（第二行）", "set-ht-sub", s.home_top.subTitle);
+  fld(c2, "小字（如域名）", "set-ht-site", s.home_top.siteText);
+  const c3 = card("AVATAR", "头像");
+  const av = document.createElement("div");
+  av.className = "field";
+  av.innerHTML = '<label>当前头像</label><div style="display:flex;gap:12px;align-items:center"><img class="avatar-preview" src="' + (s.avatar || "") + '"><button class="btn btn-ghost btn-sm" onclick="pickAvatar()">📷 更换头像</button></div>';
+  c3.appendChild(av);
+  const c4 = card("CATEGORY", "首页分类按钮");
+  for (let i = 0; i < 3; i++) {
+    const c = s.categories[i] || { name: "", path: "/" };
+    fld(c4, "按钮 " + (i + 1) + " 名称", "set-cat-name-" + i, c.name);
+    fld(c4, "按钮 " + (i + 1) + " 路径", "set-cat-path-" + i, c.path);
+  }
+  const c5 = card("MUSIC", "音乐馆");
+  fld(c5, "网易云歌单 ID", "set-music", s.music.id, "如 8152976493");
+}
+function pickAvatar() {
+  pickFiles(urls => {
+    window._avatar = urls[0];
+    const im = document.querySelector(".avatar-preview");
+    if (im) im.src = urls[0];
+  });
+}
+async function saveSettings() {
+  const val = id => { const el = $(id); return el ? el.value : ""; };
+  const settings = {
+    site: { title: val("set-title"), subtitle: val("set-subtitle"), description: val("set-desc"), author: val("set-author") },
+    avatar: window._avatar || "",
+    home_top: { title: val("set-ht-title"), subTitle: val("set-ht-sub"), siteText: val("set-ht-site") },
+    categories: [0, 1, 2].map(i => ({ name: val("set-cat-name-" + i), path: val("set-cat-path-" + i) })),
+    music: { id: val("set-music") },
+  };
+  await post("/api/settings/save", { settings });
+  alert("已保存，发布后生效");
+  refreshStatus();
+}
+
+/* ---------- 通用 ---------- */
+function mkThumb(url, onRemove) {
+  const t = document.createElement("div");
+  t.className = "thumb";
+  t.innerHTML = '<img><button class="rm">✕</button>';
+  t.querySelector("img").src = url;
+  t.querySelector(".rm").onclick = () => { onRemove(); t.remove(); };
+  return t;
+}
+function pickFiles(cb) {
+  const inp = $("file-pick");
+  inp.value = "";
+  inp.onchange = async () => {
+    if (!inp.files.length) return;
+    const urls = [];
+    await uploadFiles(Array.from(inp.files), u => urls.push(u));
+    cb(urls);
+  };
+  inp.click();
+}
+function insertAtCursor(id, text) {
+  const ta = $(id);
+  const s = ta.selectionStart || 0, e = ta.selectionEnd || 0;
+  ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + text.length;
+  ta.focus();
+  dirty = true;
+}
+["title", "categories", "tags", "content"].forEach(id => {
+  $(id).addEventListener("input", () => dirty = true);
+});
+
+/* ---------- 发布 ---------- */
+async function publish() {
+  if (currentTab === "posts" && dirty && !confirm("当前文章有未保存的修改，发布前不会包含这些修改。继续发布吗？")) return;
+  const box = $("pub-box");
+  box.className = "pub-box";
+  $("pub-title").textContent = "正在发布…";
+  $("pub-out").textContent = "";
+  $("mask").classList.add("show");
+  $("btn-publish").disabled = true;
+  try {
+    const d = await post("/api/publish", {});
+    box.classList.add("done");
+    box.classList.toggle("fail", !d.ok);
+    $("pub-title").textContent = d.pushed ? "发布成功！" : "没有新变更";
+    $("pub-out").textContent = d.output || "";
+    dirty = false;
+    refreshStatus();
+  } catch (e) {
+    box.classList.add("done", "fail");
+    $("pub-title").textContent = "发布失败";
+    $("pub-out").textContent = String(e.message || e);
+  }
+  $("btn-publish").disabled = false;
+}
+function closePub() { $("mask").classList.remove("show"); }
+
+refresh();
+</script>
+</body>
+</html>
