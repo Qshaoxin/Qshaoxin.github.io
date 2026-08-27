@@ -26,16 +26,22 @@ nav:
   travelling: false
   clock: false
   menu:
-    - title: 网页
+    - title: 我的日常
       item:
-        - name: 博客
-          link: https://hexo.anheyu.com/
+        - name: 首页
+          link: /
           icon: /img/favicon.ico
-    - title: 项目
+        - name: 闲言碎语
+          link: /essay/
+          icon: /img/favicon.ico
+    - title: 更多
       item:
-        - name: 安知鱼图床
-          link: https://image.anheyu.com/
-          icon: https://image.anheyu.com/favicon.ico
+        - name: 留言板
+          link: /comments/
+          icon: /img/favicon.ico
+        - name: 我的 GitHub
+          link: https://github.com/Qshaoxin
+          icon: /img/favicon.ico
 
 # mourn （哀悼日，指定日期网站简单变灰，不包括滚动条）
 # 注意： 仅网站首页变灰，其他页面正常显示
@@ -519,9 +525,7 @@ footer:
     cc:
       enable: false
       link: /copyright
-    linkList:
-      - link: https://github.com/anzhiyu-c/hexo-theme-anzhiyu
-        text: 主题
+    linkList: []
       # - link: https://image.anheyu.com
       #   text: 图床
       # - link: https://beian.miit.gov.cn/
