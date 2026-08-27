@@ -1,8 +1,8 @@
-/* 侧边栏作者卡片：淡蓝色半透明背景 */
+/* 侧边栏作者卡片：透明玻璃质感 + 极淡蓝 */
 .card-widget.card-info {
-  background: rgba(167, 199, 255, 0.20) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(205, 222, 250, 0.12) !important;
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
 }
 
 /* 头像戳一戳翻面 */
@@ -36,20 +36,27 @@
 }
 .card-widget.card-info.card-show-album .card-content { transform: rotateY(180deg); }
 .card-album-carousel {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: absolute; top: 0; left: 0; width: 100%;
+  display: flex; flex-direction: column; align-items: center;
   padding: 14px; box-sizing: border-box;
   transform: rotateY(180deg);
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   transition: transform .7s cubic-bezier(.4,.2,.2,1);
 }
-.card-widget.card-info.card-show-album .card-album-carousel { transform: rotateY(0deg); }
+.card-widget.card-info.card-show-album .card-album-carousel {
+  transform: rotateY(0deg);
+  position: static;
+}
+.card-widget.card-info.card-show-album .card-content {
+  position: absolute; top: 0; left: 0; width: 100%;
+}
 .carousel-title { font-size: .8rem; color: #2b3a67; margin-bottom: 10px; font-weight: 600; }
 .carousel-img-wrap { width: 100%; display: flex; justify-content: center; }
 .carousel-img {
-  max-width: 100%; max-height: 170px; border-radius: 12px;
+  width: 100%; height: auto; max-height: 400px;
+  object-fit: contain; border-radius: 12px;
   box-shadow: 0 6px 18px -6px rgba(30,50,120,.35);
-  transition: opacity .35s ease; object-fit: cover;
+  transition: opacity .35s ease;
 }
 .carousel-cap { font-size: .78rem; color: #4a5a8a; margin-top: 10px; }
 .card-widget.card-info .author-info__name {
