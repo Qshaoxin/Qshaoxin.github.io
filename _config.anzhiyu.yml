@@ -1045,7 +1045,7 @@ home_top:
   timemode: date #date/updated
   title: 欢迎来到我的博客
   subTitle: 记录与分享。
-  siteText: blog
+  siteText: qshaoxin.github.io
   category:
     - name: 隧道
       path: /archives/
