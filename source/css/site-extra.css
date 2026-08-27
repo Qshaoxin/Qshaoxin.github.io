@@ -1,8 +1,9 @@
 /* 侧边栏作者卡片：透明玻璃质感 + 极淡蓝 */
 .card-widget.card-info {
-  background: rgba(205, 222, 250, 0.12) !important;
-  backdrop-filter: blur(14px) saturate(1.5);
-  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  background: rgba(210, 228, 255, 0.07) !important;
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border-color: rgba(255, 255, 255, 0.35) !important;
 }
 
 /* 头像戳一戳翻面 */
@@ -59,6 +60,17 @@
   transition: opacity .35s ease;
 }
 .carousel-cap { font-size: .78rem; color: #4a5a8a; margin-top: 10px; }
+
+/* 相册集页面：封面预览框自适应图片原始比例，完整显示不裁剪 */
+#album .card-album { align-items: flex-start; }
+#album .card-album .card { height: auto; }
+#album .card-album .card_cover {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  max-height: 420px;
+}
 .card-widget.card-info .author-info__name {
   color: #2b3a67 !important;
 }
@@ -66,7 +78,8 @@
   color: #4a5a8a !important;
 }
 [data-theme="dark"] .card-widget.card-info {
-  background: rgba(38, 60, 110, 0.45) !important;
+  background: rgba(22, 32, 60, 0.20) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 [data-theme="dark"] .card-widget.card-info .author-info__name {
   color: #cdd8f5 !important;

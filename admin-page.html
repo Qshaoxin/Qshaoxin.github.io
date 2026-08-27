@@ -745,11 +745,13 @@ async function loadAlbums() {
   d.albums.forEach(a => {
     const el = document.createElement("div");
     el.className = "album-card";
-    el.innerHTML = '<img class="cover" loading="lazy"><div class="info"><div class="name"></div><div class="desc"></div></div>';
+    el.style.position = "relative";
+    el.innerHTML = '<img class="cover" loading="lazy"><div class="info"><div class="name"></div><div class="desc"></div></div><button class="rm" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:none;background:rgba(66,90,239,.9);color:#fff;cursor:pointer" title="编辑相册信息">✏️</button>';
     el.querySelector(".cover").src = a.cover;
     el.querySelector(".name").textContent = a.class_name + "（" + a.photos + " 张）";
     el.querySelector(".desc").textContent = a.description || "";
     el.onclick = () => openAlbum(a);
+    el.querySelector("button").onclick = e => { e.stopPropagation(); editAlbum(a); };
     grid.appendChild(el);
   });
   const add = document.createElement("div");
@@ -770,7 +772,51 @@ function openAlbum(a) {
   $("album-home").style.display = "none";
   $("album-detail").style.display = "block";
   $("album-title").textContent = a.class_name;
+  let bar = document.getElementById("album-edit-bar");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "album-edit-bar";
+    bar.style.cssText = "display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap";
+    bar.innerHTML = '<button class="btn btn-ghost btn-sm">✏️ 改标题/描述</button>' +
+      '<button class="btn btn-ghost btn-sm">🖼 换封面</button>' +
+      '<button class="btn btn-ghost btn-sm">🌄 换顶部横幅</button>' +
+      '<button class="btn btn-danger-ghost btn-sm">🗑 删除相册</button>';
+    const [btnInfo, btnCover, btnBanner, btnDel] = bar.querySelectorAll("button");
+    btnInfo.onclick = () => editAlbum(currentAlbum);
+    btnCover.onclick = () => pickImageFor(url => updateAlbum({ cover: url }));
+    btnBanner.onclick = () => pickImageFor(url => updateAlbum({ top_background: url }));
+    btnDel.onclick = async () => {
+      if (!confirm("删除整个相册（含所有照片）？")) return;
+      await post("/api/album/delete", { path_name: currentAlbum.path_name });
+      albumBack();
+    };
+    const titleBox = $("album-title").closest(".card-title");
+    titleBox.parentNode.insertBefore(bar, titleBox.nextSibling);
+  }
   renderPhotos(a);
+}
+function pickImageFor(cb) {
+  openImgLib(url => {
+    const pick = () => cb(url);
+    if (confirm("使用这张图片？（确定=图片库这张，取消=改为上传新图）")) pick();
+    else pickFiles(urls => cb(urls[0]));
+  });
+}
+async function updateAlbum(fields) {
+  await post("/api/album/update", Object.assign({ path_name: currentAlbum.path_name }, fields));
+  const fresh = (await api("/api/albums")).albums.find(x => x.path_name === currentAlbum.path_name);
+  if (fresh) openAlbum(fresh);
+  loadAlbums();
+  refreshStatus();
+}
+async function editAlbum(a) {
+  const name = prompt("相册标题：", a.class_name);
+  if (name === null) return;
+  const description = prompt("相册描述：", a.description || "");
+  if (description === null) return;
+  await post("/api/album/update", { path_name: a.path_name, name, description });
+  loadAlbums();
+  refreshStatus();
 }
 function albumBack() {
   $("album-detail").style.display = "none";

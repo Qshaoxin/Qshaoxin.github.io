@@ -185,6 +185,23 @@ function albumDelete(pathName) {
   const slug = pathName.replace(/^\/album\/|\/$/g, "");
   fs.rmSync(path.join(ROOT, "source", "album", slug), { recursive: true, force: true });
 }
+function albumUpdate(pathName, { name, description, cover, top_background }) {
+  const d = readYaml(ALBUM_FILE) || [];
+  const a = d.find(x => x.path_name === pathName);
+  if (!a) throw new Error("相册不存在");
+  if (name !== undefined && name !== null && name !== "") a.class_name = name;
+  if (description !== undefined) a.description = description;
+  if (cover) a.cover = cover;
+  if (top_background) a.top_background = top_background;
+  writeYaml(ALBUM_FILE, d);
+  const slug = pathName.replace(/^\/album\/|\/$/g, "");
+  const fp = path.join(ROOT, "source", "album", slug, "index.md");
+  if (fs.existsSync(fp)) {
+    let raw = fs.readFileSync(fp, "utf8");
+    raw = raw.replace(/^title:.*$/m, "title: " + (a.class_name || slug));
+    fs.writeFileSync(fp, raw, "utf8");
+  }
+}
 function albumAddPhoto(pathName, { content, images }) {
   const d = readYaml(ALBUM_FILE) || [];
   const a = d.find(x => x.path_name === pathName);
@@ -415,6 +432,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/api/albums") return json(res, 200, { albums: albumList() });
     if (req.method === "POST" && url.pathname === "/api/album/create") { albumCreate(await readJson(req)); return json(res, 200, { ok: true }); }
     if (req.method === "POST" && url.pathname === "/api/album/delete") { albumDelete((await readJson(req)).path_name); return json(res, 200, { ok: true }); }
+    if (req.method === "POST" && url.pathname === "/api/album/update") { const b = await readJson(req); albumUpdate(b.path_name, b); return json(res, 200, { ok: true }); }
     if (req.method === "POST" && url.pathname === "/api/album/photo/add") { const b = await readJson(req); albumAddPhoto(b.path_name, { content: b.content, images: b.images }); return json(res, 200, { ok: true }); }
     if (req.method === "POST" && url.pathname === "/api/album/photo/delete") { const b = await readJson(req); albumDeletePhoto(b.path_name, b.item, b.img); return json(res, 200, { ok: true }); }
     /* 页面 */
