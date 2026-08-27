@@ -233,7 +233,7 @@ post_copyright:
   enable: true
   decode: false
   author_href:
-  location: 长沙
+  location:
   license: CC BY-NC-SA 4.0
   license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
   avatarSinks: false # hover时头像下沉
@@ -851,7 +851,7 @@ busuanzi:
 # Formal: Month/Day/Year Time or Year/Month/Day Time
 runtimeshow:
   enable: true
-  publish_date: 4/1/2021 00:00:00
+  publish_date: 6/16/2026 00:00:00
 
 # Console - Newest Comments
 newest_comments:
@@ -1235,6 +1235,7 @@ inject:
 
   bottom:
     # 自定义js
+    - <script defer src="/js/site-extra.js"></script>
     # - <script src="/js/xxx"></script>
 
 # CDN
