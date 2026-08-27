@@ -332,6 +332,15 @@ function json(res, code, data) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
+    if (req.method === "GET" && url.pathname.startsWith("/img/")) {
+      const rel = decodeURIComponent(url.pathname.replace(/^\/img\//, "")).replace(/[/\\\\]/g, path.sep);
+      const fp = path.join(IMG_DIR, path.basename(rel));
+      if (!fs.existsSync(fp) || !fs.statSync(fp).isFile()) { res.writeHead(404); return res.end(); }
+      const ext = path.extname(fp).toLowerCase();
+      const mime = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".bmp": "image/bmp" }[ext] || "application/octet-stream";
+      res.writeHead(200, { "Content-Type": mime, "Cache-Control": "no-cache" });
+      return res.end(fs.readFileSync(fp));
+    }
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       return res.end(PAGE);

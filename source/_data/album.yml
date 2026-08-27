@@ -1,19 +1,13 @@
 - class_name: 日常碎片
   path_name: /album/daily/
   description: 生活中的随手一拍
-  cover: https://picsum.photos/seed/album-daily/640/360
+  cover: /img/1787811327574-05_受惊手掌误拍镜头.png
   top_background: https://picsum.photos/seed/album-daily-bg/1920/480
   type: 2
   rowHeight: 220
   limit: 24
   album_list:
-    - content: 街角的黄昏
-      date: 2026/08/20
-      address: 某个街角
+    - content: ''
+      date: 2026/08/27
       image:
-        - https://picsum.photos/seed/shot1/1200/800
-        - https://picsum.photos/seed/shot2/1200/800
-        - https://picsum.photos/seed/shot3/1200/800
-        - https://picsum.photos/seed/shot4/1200/800
-        - https://picsum.photos/seed/shot5/1200/800
-        - https://picsum.photos/seed/shot6/1200/800
+        - /img/1787811327574-05_受惊手掌误拍镜头.png
