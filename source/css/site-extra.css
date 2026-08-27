@@ -1,0 +1,21 @@
+/* 侧边栏作者卡片：淡蓝色半透明背景 */
+.card-widget.card-info {
+  background: rgba(157, 197, 255, 0.38) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.card-widget.card-info .author-info__name {
+  color: #2b3a67 !important;
+}
+.card-widget.card-info .author-info__desc {
+  color: #4a5a8a !important;
+}
+[data-theme="dark"] .card-widget.card-info {
+  background: rgba(38, 60, 110, 0.45) !important;
+}
+[data-theme="dark"] .card-widget.card-info .author-info__name {
+  color: #cdd8f5 !important;
+}
+[data-theme="dark"] .card-widget.card-info .author-info__desc {
+  color: #9fb0d8 !important;
+}
