@@ -1,8 +1,8 @@
-- class_name: 日常碎片
+- class_name: 女儿~~~
   path_name: /album/daily/
-  description: 生活中的随手一拍
+  description: 女儿的惊鸿一瞥
   cover: /img/1787811424940-05_受惊手掌误拍镜头.png
-  top_background: https://picsum.photos/seed/album-daily-bg/1920/480
+  top_background: /img/1787821008642-c尾.png
   type: 2
   rowHeight: 220
   limit: 24
@@ -14,8 +14,8 @@
 - class_name: 女儿
   path_name: /album/女儿/
   description: 女儿
-  cover: /img/1787820846187-04_踏蹦跳踩出城市地面碎片.png
-  top_background: https://picsum.photos/seed/女儿-bg/1920/480
+  cover: /img/loading.png
+  top_background: /img/1787821008642-c尾.png
   type: 2
   rowHeight: 220
   limit: 24
