@@ -1,4 +1,8 @@
 /* 侧边栏作者卡片：透明玻璃质感 + 极淡蓝 */
+#aside-content > .card-widget.card-info::before {
+  display: none !important;
+  background: none !important;
+}
 .card-widget.card-info {
   background: rgba(210, 228, 255, 0.07) !important;
   backdrop-filter: blur(16px) saturate(1.1);
