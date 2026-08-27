@@ -22,7 +22,7 @@ if theme.aside.card_author.enable
             !=fragment_cache('social', function(){return partial('includes/header/social')})
     if idlePhotos.length
       .card-album-carousel#card-album-carousel(data-photos=JSON.stringify(idlePhotos))
-        .carousel-title 📸 相册速览
+        .carousel-title 📸 相册集
         .carousel-img-wrap
           img.carousel-img(src=idlePhotos[0].u, alt=idlePhotos[0].n)
         .carousel-cap=idlePhotos[0].n
