@@ -6,10 +6,4 @@
   buttonText: 回到首页
   top_background: https://picsum.photos/seed/essay-bg/1920/480
   limit: 10
-  essay_list:
-    - content: 博客开张了，以后在这里记录日常。
-      date: 2026/08/27 10:00:00
-      from: 博客
-    - content: 换上了 AnZhiYu 主题，好看多了。
-      date: 2026/08/27 13:20:00
-      from: 折腾
+  essay_list: []
