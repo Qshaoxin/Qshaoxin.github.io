@@ -11,3 +11,21 @@
       date: 2026/08/27
       image:
         - /img/1787811424940-05_受惊手掌误拍镜头.png
+- class_name: 女儿
+  path_name: /album/女儿/
+  description: 女儿
+  cover: /img/1787820846187-04_踏蹦跳踩出城市地面碎片.png
+  top_background: https://picsum.photos/seed/女儿-bg/1920/480
+  type: 2
+  rowHeight: 220
+  limit: 24
+  album_list:
+    - content: 我的亲女儿
+      date: 2026/08/27
+      image:
+        - /img/1787820846187-04_踏蹦跳踩出城市地面碎片.png
+        - /img/1787820846206-05_受惊手掌误拍镜头.png
+        - /img/1787820891248-f2.png
+        - /img/1787820963168-首帧.png
+        - /img/1787821008642-c尾.png
+        - /img/1787821043982-reference_b_face.png
