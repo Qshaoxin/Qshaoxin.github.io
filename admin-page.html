@@ -100,6 +100,25 @@ input[type=text]:focus { border-color: var(--main); }
 .splitter::after { content:""; position:absolute; left:2px; top:50%; transform:translateY(-50%);
   width:2px; height:56px; border-radius:2px; background:var(--border); transition:background .2s; }
 .splitter:hover::after { background:var(--main); }
+
+/* ---------- 自由布局模式 ---------- */
+.win-bar { display:none; align-items:center; gap:6px; font-size:.78rem; color:var(--text-light);
+  cursor:grab; user-select:none; padding:2px 4px 10px; }
+.win-bar:active { cursor:grabbing; }
+body.free-mode .win-bar { display:flex; }
+body.free-mode { overflow:hidden; }
+body.free-mode .tabs { position:fixed; top:60px; left:0; right:0; z-index:150; margin:8px auto; background:rgba(247,249,254,.9); backdrop-filter:blur(8px); padding:10px 24px; }
+body.free-mode .wrap { position:static; height:0; margin:0; padding:0; overflow:visible; }
+body.free-mode .wrap.one { height:0; }
+body.free-mode .view.on { position:static; height:0; }
+body.free-mode .card { position:absolute; margin:0; z-index:10; max-width:96vw; }
+body.free-mode .card .win-rz { display:block; }
+body.free-mode .splitter { display:none; }
+.win-rz { display:none; position:absolute; right:4px; bottom:4px; width:18px; height:18px; cursor:nwse-resize;
+  border-right:3px solid var(--border); border-bottom:3px solid var(--border); border-radius:0 0 10px 0; opacity:.7; }
+.win-rz:hover { border-color:var(--main); opacity:1; }
+.win-flash { animation:winpop .25s ease; }
+@keyframes winpop { from { transform:scale(.96); opacity:.4 } to { transform:scale(1); opacity:1 } }
 #rich-editor:focus, #page-rich-editor:focus { border-color:var(--main); }
 #rich-editor:empty::before, #page-rich-editor:empty::before { content:attr(data-ph); color:#b3bacb; }
 .md h1,.md h2,.md h3 { margin:.8em 0 .5em; }
@@ -164,6 +183,8 @@ textarea:focus { border-color: var(--main); }
   <div class="brand"><div class="logo">✎</div>博客后台<small>qshaoxin.github.io</small></div>
   <div class="nav-right">
     <span id="dirty-dot"></span>
+    <button class="btn btn-ghost btn-sm" id="btn-free" onclick="toggleFreeMode()">🪟 自由布局</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetFreeLayout()" title="清空自由布局的摆位" style="display:none" id="btn-free-reset">↺ 重置</button>
     <button class="btn btn-main" id="btn-publish" onclick="publish()">🚀 一键发布</button>
   </div>
 </nav>
@@ -844,6 +865,139 @@ refresh();
     document.addEventListener("mouseup", up);
   });
 })();
+
+/* ---------- 自由布局：所有卡片变成可拖拽/缩放的浮动窗口 ---------- */
+let freeMode = false, winZ = 20;
+const WIN_STORE = "blog-admin-win-layout";
+function winLayout() { try { return JSON.parse(localStorage.getItem(WIN_STORE)) || {}; } catch (e) { return {}; } }
+function saveWinPos(id, p) { const d = winLayout(); d[id] = p; localStorage.setItem(WIN_STORE, JSON.stringify(d)); }
+function cardWinId(card, i) {
+  if (!card.dataset.winId) {
+    const view = card.closest(".view");
+    card.dataset.winId = (view ? view.id.replace("view-", "") : "x") + "-card" + (i + 1);
+  }
+  return card.dataset.winId;
+}
+function ensureWins() {
+  document.querySelectorAll(".view.on .card, #view-settings .card").forEach((card, i) => {
+    if (card.closest("#imglib-mask") || card.closest("#mask")) return;
+    if (!card.querySelector(".win-bar")) {
+      const bar = document.createElement("div");
+      bar.className = "win-bar";
+      bar.innerHTML = "<span>⋮⋮</span><span>按住这里拖动 · 右下角拉大小</span>";
+      card.prepend(bar);
+      const rz = document.createElement("div");
+      rz.className = "win-rz";
+      card.appendChild(rz);
+      bindWin(card, bar, rz);
+    }
+    layoutWin(card);
+  });
+}
+function layoutWin(card) {
+  const id = card.dataset.winId;
+  const p = winLayout()[id];
+  if (!p) return false;
+  card.style.left = p.x + "px"; card.style.top = p.y + "px";
+  if (p.w) card.style.width = p.w + "px";
+  if (p.h) { card.style.height = p.h + "px"; card.style.overflowY = "auto"; }
+  card.style.zIndex = p.z || 10;
+  return true;
+}
+function cascadeWin(card, n) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const w = Math.min(520, vw - 80);
+  const x = Math.min(40 + n * 36, vw - w - 20);
+  const y = Math.min(130 + n * 34, vh - 220);
+  card.style.left = x + "px"; card.style.top = y + "px";
+  card.style.width = w + "px";
+  card.style.zIndex = ++winZ;
+  card.classList.add("win-flash");
+  setTimeout(() => card.classList.remove("win-flash"), 300);
+}
+function bindWin(card, bar, rz) {
+  const id = () => card.dataset.winId;
+  card.addEventListener("mousedown", () => { card.style.zIndex = ++winZ; });
+  bar.addEventListener("mousedown", e => {
+    if (e.target.closest("button")) return;
+    e.preventDefault();
+    document.body.style.userSelect = "none";
+    const r = card.getBoundingClientRect();
+    const ox = e.clientX - r.left, oy = e.clientY - r.top;
+    const move = ev => {
+      card.style.left = Math.max(0, Math.min(ev.clientX - ox, window.innerWidth - 80)) + "px";
+      card.style.top = Math.max(66, Math.min(ev.clientY - oy, window.innerHeight - 60)) + "px";
+    };
+    const up = () => {
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+      saveWinPos(id(), { x: parseInt(card.style.left), y: parseInt(card.style.top),
+        w: parseInt(card.style.width) || 0, h: parseInt(card.style.height) || 0, z: card.style.zIndex || 10 });
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+  });
+  rz.addEventListener("mousedown", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.body.style.userSelect = "none";
+    const r = card.getBoundingClientRect();
+    const move = ev => {
+      card.style.width = Math.max(260, ev.clientX - r.left) + "px";
+      card.style.height = Math.max(180, ev.clientY - r.top) + "px";
+      card.style.overflowY = "auto";
+    };
+    const up = () => {
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+      saveWinPos(id(), { x: parseInt(card.style.left) || 0, y: parseInt(card.style.top) || 0,
+        w: parseInt(card.style.width) || 0, h: parseInt(card.style.height) || 0, z: card.style.zIndex || 10 });
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+  });
+}
+function toggleFreeMode() {
+  freeMode = !freeMode;
+  localStorage.setItem("blog-admin-free", freeMode ? "1" : "0");
+  applyFreeMode();
+}
+function applyFreeMode() {
+  document.body.classList.toggle("free-mode", freeMode);
+  $("btn-free").textContent = freeMode ? "📐 固定布局" : "🪟 自由布局";
+  $("btn-free-reset").style.display = freeMode ? "inline-flex" : "none";
+  if (freeMode) {
+    ensureWins();
+    document.querySelectorAll(".view.on .card").forEach((card, i) => {
+      if (!card.dataset.winId) cardWinId(card, i);
+      if (!layoutWin(card)) cascadeWin(card, i);
+    });
+  } else {
+    document.querySelectorAll(".card").forEach(card => {
+      ["left", "top", "width", "height", "zIndex", "overflowY"].forEach(k => card.style[k] = "");
+    });
+  }
+}
+function resetFreeLayout() {
+  if (!confirm("重置所有面板的位置和大小？")) return;
+  localStorage.removeItem(WIN_STORE);
+  document.querySelectorAll(".view.on .card").forEach((card, i) => cascadeWin(card, i));
+}
+freeMode = localStorage.getItem("blog-admin-free") === "1";
+if (freeMode) applyFreeMode();
+const _switchTab = switchTab;
+switchTab = function (name) {
+  _switchTab(name);
+  if (freeMode) setTimeout(() => {
+    document.querySelectorAll(".view.on .card").forEach((card, i) => {
+      ensureWins();
+      if (!card.dataset.winId) cardWinId(card, i);
+      if (!layoutWin(card)) cascadeWin(card, i);
+    });
+  }, 60);
+};
 </script>
 </body>
 </html>
