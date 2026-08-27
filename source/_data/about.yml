@@ -1,0 +1,81 @@
+- avatarImg: /img/loading.png
+  name: shaoxin
+  subtitle: 一个每天都想睡觉的普通大学生
+  description: 记录与分享
+  helloAbout: Hello World!
+  skillsTips:
+    tips: 技能
+    title: 折腾过的技术
+  careers:
+    tips: 生涯
+    title: 无限进步
+    list:
+      - desc: 2026-08 开始写博客
+        color: "#425aef"
+      - desc: 在读大学生
+        color: "#357ef5"
+  avatarSkills:
+    left:
+      - 睡觉
+      - 折腾
+    right:
+      - 记录
+      - 分享
+  aboutsiteTips:
+    tips: 关于本站
+    title1: 一个普通大学生
+    title2: 随便玩玩的网站
+    word:
+      - 热
+      - 爱
+      - 生
+      - 活
+  map:
+    title: 现在生活在
+    StrengthenTitle: 中国
+    background: https://picsum.photos/seed/map-light/1600/900
+    backgroundDark: https://picsum.photos/seed/map-dark/1600/900
+  selfInfo:
+    selfInfoTips1: 建站至今
+    selfInfoContentYear: 2026
+    selfInfoTips2: 身份
+    selfInfoContent2: 大学生
+    selfInfoTips3: 爱好
+    selfInfoContent3: 睡觉 & 折腾
+  personalities:
+    author_name: shaoxin
+    personality_type: 安静的普通人
+    personality_img: https://npm.elemecdn.com/anzhiyu-blog@2.1.1/img/svg/ESFJ-A.svg
+    name_url: https://www.16personalities.com/
+    personality_type_color: "#ac899c"
+  photo_url: /img/loading.png
+  maxim:
+    maxim_tips: 座右铭
+    maxim_top: 睡个好觉
+    maxim_bottom: 保证精力充沛
+  buff:
+    buff_tips: 特长
+    buff_top: 快速入睡
+    buff_bottom: 任何时间任何地点
+  game:
+    game_tips: 爱好
+    game_title: 玩点游戏
+    game_uid: ""
+    game_bg: https://picsum.photos/seed/game-bg/1400/500
+  comic:
+    comic_tips: 追番
+    comic_title: 看点动画
+    comic_list:
+      - name: 暂无
+        href: https://www.bilibili.com/
+        cover: https://picsum.photos/seed/comic1/300/420
+  like:
+    like_tips: 兴趣
+    like_title: 折腾博客
+    like_bottom: 折腾本身就很快乐
+    like_bg: https://picsum.photos/seed/like-bg/1400/500
+  music:
+    music_tips: 音乐
+    music_title: 听点歌
+    music_link: /music/
+    music_bg: https://picsum.photos/seed/music-bg/1400/500

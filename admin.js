@@ -99,10 +99,11 @@ function parsePost(raw) {
   flush();
   return { meta, content: m[2] };
 }
-function buildPost(title, date, tags, categories, content) {
+function buildPost(title, date, tags, categories, content, cover) {
   const fm = ["---", `title: ${title}`, `date: ${date}`];
   if (categories && categories.length) { fm.push("categories:"); categories.forEach(c => fm.push(`  - ${c}`)); }
   if (tags && tags.length) { fm.push("tags:"); tags.forEach(t => fm.push(`  - ${t}`)); }
+  if (cover) fm.push(`cover: ${cover}`);
   fm.push("---", "");
   return fm.join("\n") + "\n" + content.replace(/\r\n/g, "\n");
 }
@@ -350,7 +351,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/api/post") {
       const raw = fs.readFileSync(path.join(POSTS_DIR, safeName(url.searchParams.get("file"))), "utf8");
       const { meta, content } = parsePost(raw);
-      return json(res, 200, { title: meta.title || "", date: String(meta.date || ""), tags: meta.tags || [], categories: meta.categories || [], content });
+      return json(res, 200, { title: meta.title || "", date: String(meta.date || ""), cover: meta.cover || "", tags: meta.tags || [], categories: meta.categories || [], content });
     }
     if (req.method === "POST" && url.pathname === "/api/save") {
       const b = await readJson(req);
@@ -360,7 +361,7 @@ const server = http.createServer(async (req, res) => {
         const d = (b.date || now()).slice(0, 10).replace(/-/g, "");
         file = `${d}-${slugify(title)}.md`;
       }
-      fs.writeFileSync(path.join(POSTS_DIR, file), buildPost(title, b.date || now(), b.tags || [], b.categories || [], b.content || ""), "utf8");
+      fs.writeFileSync(path.join(POSTS_DIR, file), buildPost(title, b.date || now(), b.tags || [], b.categories || [], b.content || "", b.cover || ""), "utf8");
       return json(res, 200, { ok: true, file });
     }
     if (req.method === "POST" && url.pathname === "/api/delete") {
@@ -384,6 +385,14 @@ const server = http.createServer(async (req, res) => {
     /* 设置 */
     if (req.method === "GET" && url.pathname === "/api/settings") return json(res, 200, settingsRead());
     if (req.method === "POST" && url.pathname === "/api/settings/save") { settingsSave((await readJson(req)).settings); return json(res, 200, { ok: true }); }
+    /* 图片库 */
+    if (req.method === "GET" && url.pathname === "/api/images") {
+      const dir = fs.existsSync(IMG_DIR) ? fs.readdirSync(IMG_DIR) : [];
+      const imgs = dir.filter(f => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(f))
+        .map(f => ({ url: "/img/" + f, name: f, size: fs.statSync(path.join(IMG_DIR, f)).size }))
+        .sort((a, b) => b.name.localeCompare(a.name));
+      return json(res, 200, { images: imgs });
+    }
     /* 上传 */
     if (req.method === "POST" && url.pathname === "/api/upload") return json(res, 200, await handleUpload(req, url));
     /* 状态与发布 */

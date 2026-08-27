@@ -172,6 +172,17 @@ textarea:focus { border-color: var(--main); }
         <div class="field" style="width:170px"><label>分类（逗号分隔）</label><input type="text" id="categories" placeholder="随笔"></div>
         <div class="field" style="width:190px"><label>标签（逗号分隔）</label><input type="text" id="tags" placeholder="开始, 博客"></div>
       </div>
+      <div class="ed-row">
+        <div class="field grow-1"><label>文章封面（文章列表/首页轮播卡展示的图片）</label><input type="text" id="cover" placeholder="/img/xxx.png 或网络图片地址"></div>
+        <div class="field" style="width:290px"><label>&nbsp;</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <img id="cover-preview" class="avatar-preview" style="width:44px;height:44px;border-radius:8px;display:none">
+            <button class="btn btn-ghost btn-sm" onclick="pickCoverImage()">📷 上传</button>
+            <button class="btn btn-ghost btn-sm" onclick="pickCoverLib()">🖼 图片库</button>
+            <button class="btn btn-danger-ghost btn-sm" onclick="clearCover()">✕</button>
+          </div>
+        </div>
+      </div>
       <div class="editor-body">
         <textarea id="content" placeholder="在这里用 Markdown 写文章…" oninput="renderPreview()"></textarea>
         <div id="preview" class="hidden md"></div>
@@ -180,6 +191,7 @@ textarea:focus { border-color: var(--main); }
         <div class="left">
           <button class="btn btn-ghost btn-sm" onclick="togglePreview()">👁 预览</button>
           <button class="btn btn-ghost btn-sm" onclick="pickPostImage()">📷 插图</button>
+          <button class="btn btn-ghost btn-sm" onclick="pickPostLib()">🖼 图片库插图</button>
           <button class="btn btn-danger-ghost btn-sm" onclick="delPost()">🗑 删除</button>
         </div>
         <span id="save-hint">✓ 已保存</span>
@@ -269,11 +281,24 @@ textarea:focus { border-color: var(--main); }
   </div>
 </div>
 
+<div id="imglib-mask" style="display:none;position:fixed;inset:0;background:rgba(30,38,60,.45);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center">
+  <div class="pub-box" style="text-align:left;width:min(860px,92vw)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3>🖼 图片库 <small style="color:var(--text-light);font-size:.8rem">点击图片即可使用</small></h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="libUpload()">⬆ 上传新图片</button>
+        <button class="btn btn-main btn-sm" onclick="closeImgLib()">关闭</button>
+      </div>
+    </div>
+    <div id="imglib-grid" class="photo-grid" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <input type="file" id="file-pick" accept="image/*" multiple style="display:none">
 
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script>
-let currentFile = null, dirty = false, currentTab = "posts";
+let currentFile = null, dirty = false, currentTab = "posts", postDate = "";
 let essayImages = [], albumImages = [], currentAlbum = null, currentPage = null;
 let pagePreviewOn = false, postPreviewOn = false;
 window._avatar = "";
@@ -341,6 +366,7 @@ async function openPost(file) {
   $("empty").style.display = "none"; $("editor").style.display = "flex";
   $("title").value = d.title; $("categories").value = (d.categories || []).join(", ");
   $("tags").value = (d.tags || []).join(", "); $("content").value = d.content;
+  $("cover").value = d.cover || ""; postDate = d.date || ""; updateCoverPreview();
   renderPreview(); refresh();
 }
 function newPost() {
@@ -348,6 +374,7 @@ function newPost() {
   currentFile = null; dirty = false;
   $("empty").style.display = "none"; $("editor").style.display = "flex";
   $("title").value = ""; $("categories").value = ""; $("tags").value = ""; $("content").value = "";
+  $("cover").value = ""; postDate = ""; updateCoverPreview();
   renderPreview(); refresh(); $("title").focus();
 }
 function confirmDiscard() {
@@ -356,7 +383,7 @@ function confirmDiscard() {
 }
 async function save() {
   const d = await post("/api/save", {
-    file: currentFile, title: $("title").value,
+    file: currentFile, title: $("title").value, cover: $("cover").value.trim(), date: postDate,
     categories: $("categories").value.split(",").map(s => s.trim()).filter(Boolean),
     tags: $("tags").value.split(",").map(s => s.trim()).filter(Boolean),
     content: $("content").value,
@@ -383,6 +410,49 @@ function renderPreview() {
 }
 function pickPostImage() {
   pickFiles(urls => { urls.forEach(u => insertAtCursor("content", "\\n![](" + u + ")\\n")); });
+}
+function pickPostLib() {
+  openImgLib(url => insertAtCursor("content", "\\n![](" + url + ")\\n"));
+}
+function pickCoverImage() {
+  pickFiles(urls => { $("cover").value = urls[0]; updateCoverPreview(); dirty = true; });
+}
+function pickCoverLib() {
+  openImgLib(url => { $("cover").value = url; updateCoverPreview(); dirty = true; });
+}
+function clearCover() { $("cover").value = ""; updateCoverPreview(); dirty = true; }
+function updateCoverPreview() {
+  const p = $("cover-preview"), v = $("cover").value.trim();
+  if (v) { p.src = v; p.style.display = "block"; } else p.style.display = "none";
+}
+$("cover").addEventListener("input", updateCoverPreview);
+
+/* 图片库 */
+let libCallback = null;
+async function openImgLib(cb) {
+  libCallback = cb;
+  const m = $("imglib-mask");
+  m.style.display = "flex";
+  const d = await api("/api/images");
+  const g = $("imglib-grid");
+  g.innerHTML = d.images.length ? "" : '<div style="color:var(--text-light);padding:20px">还没有图片，点右上角上传</div>';
+  d.images.forEach(im => {
+    const cell = document.createElement("div");
+    cell.className = "photo-cell";
+    cell.innerHTML = '<img loading="lazy" title="' + im.name + '"><div class="cap"></div>';
+    cell.querySelector("img").src = im.url;
+    cell.querySelector(".cap").textContent = (im.size / 1024).toFixed(0) + " KB";
+    cell.style.cursor = "pointer";
+    cell.onclick = () => { closeImgLib(); libCallback && libCallback(im.url); };
+    g.appendChild(cell);
+  });
+}
+function closeImgLib() { $("imglib-mask").style.display = "none"; }
+function libUpload() {
+  pickFiles(async urls => {
+    for (const u of urls) await new Promise(r => setTimeout(r, 30));
+    openImgLib(libCallback);
+  });
 }
 
 /* ---------- 闲言碎语 ---------- */
