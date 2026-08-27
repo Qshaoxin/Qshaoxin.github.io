@@ -1,7 +1,6 @@
 ---
 title: 从开源到自己的远控软件：QdeskView 二次开发全记录
 date: 2026-08-27 23:30:00
-cover: /img/qdeskview-cover.jpg
 categories:
   - 项目
 tags:
@@ -9,9 +8,10 @@ tags:
   - WebRTC
   - Electron
   - QdeskView
+cover: /img/1787811424940-05_受惊手掌误拍镜头.png
 ---
 
-远程控制软件天天用，但一直没认真想过它里面是什么。这个项目把我这台 Windows 电脑变成「被控端」，让任何浏览器打开网页就能看到画面、控制键鼠、多人协作——基于开源的 BilldDesk 二次开发，取名 **QdeskView**，现在跑在我自己的服务器上：https://campuslife.top
+远程控制软件天天用，但一直没认真想过它里面是什么。这个项目把我这台 Windows 电脑变成「被控端」，让任何浏览器打开网页就能看到画面、控制键鼠、多人协作——基于开源的 BilldDesk 二次开发，取名 **QdeskView**，现在跑在我自己的服务器上：[https://campuslife.top](https://campuslife.top)
 
 这篇文章记录从部署开源项目到做出自己功能的完整过程，重点是四个批次的功能开发和踩过的每一个坑。
 
@@ -21,7 +21,7 @@ BilldDesk 是 MIT 协议的开源远程控制项目，技术栈是 Vue3 + Koa2 +
 
 服务器上用 Docker 跑了 MySQL、Redis 和 coturn（TURN 服务器，NAT 穿透必需），Nginx 做 HTTPS 反代和静态资源，Let's Encrypt 的证书。域名用了自己的 campuslife.top，备案号挂页脚。这一步做完，就有了一个能用的网页远控——但满屏都是原作者的 GitHub 链接和黄色主题。
 
-于是开始「换皮」：主题色改成蓝色、画了个蓝色笔记本电脑的 SVG 图标、删掉作者信息和私有化部署入口、下载链接指向自己的客户端。客户端用 electron-builder 打成**便携版 exe**（不是安装包，双击就跑），版本信息存数据库的 desk_version 表，配合强更字段就能推升级。
+于是开始「换皮」：主题色改成蓝色、画了个蓝色笔记本电脑的 SVG 图标、删掉作者信息和私有化部署入口、下载链接指向自己的客户端。客户端用 electron-builder 打成**便携版 exe**（不是安装包，双击就跑），版本信息存数据库的 desk\_version 表，配合强更字段就能推升级。
 
 这里踩到第一个印象深刻的坑：**找不到版本配置信息**。客户端启动会查版本接口，但表是空的。往表里插数据时，直接在 bash 里拼 SQL 总是被转义搞坏——反引号、引号经过 bash 和 ssh 两层转义后面目全非。最后的解法是把 SQL base64 编码后传到服务器再解码执行，从此所有数据库操作都走这条路。
 
@@ -30,7 +30,7 @@ BilldDesk 是 MIT 协议的开源远程控制项目，技术栈是 Vue3 + Koa2 +
 换皮完成后，列了一份功能计划（学习大厂的做法：先写文档再动手），分四个批次：
 
 | 批次 | 内容 |
-|---|---|
+| --- | --- |
 | 批1 | 网页主控端真实键鼠控制 + 中文输入 |
 | 批2 | 稳定性：断开反馈、会话去重、白屏防御 |
 | 批3+4 | 多人协作：多虚拟光标互不干扰 |
@@ -67,11 +67,11 @@ BilldDesk 是 MIT 协议的开源远程控制项目，技术栈是 Vue3 + Koa2 +
 
 具体实现：
 
-- **协议**：新增 `billdDeskCursor`/`billdDeskCursorLeave` 两个 ws 消息，服务端只做房间广播转发（复用现有原语，不加新服务）
-- **被控端当 hub**：DataChannel 收到各主控的移动，30Hz 节流向房间广播；每 5 秒重发一次所有「停靠」的光标（不然不动鼠标的人光标会被过期清理掉）
-- **颜色分配**：按设备码哈希到 8 色板，冲突时占用避让——第一批测试两个光标撞色了才发现的问题
-- **点击仲裁**：单人连接时保持传统「移哪打哪」；两人以上时移动只更新虚拟光标，点击先瞬移再执行；不同主控的点击之间加 200ms 互斥锁，防止两个瞬移+点击交错产生鬼畜拖拽；按住拖拽期间独占真实光标直到松开
-- **被控端 overlay**：Electron 开一个透明、置顶、鼠标穿透的 BrowserWindow，把所有协作者的光标直接画在物理屏幕上——坐在被控电脑前的人也能看到满屏飞来飞去的彩色箭头
+*   **协议**：新增 `billdDeskCursor`/`billdDeskCursorLeave` 两个 ws 消息，服务端只做房间广播转发（复用现有原语，不加新服务）
+*   **被控端当 hub**：DataChannel 收到各主控的移动，30Hz 节流向房间广播；每 5 秒重发一次所有「停靠」的光标（不然不动鼠标的人光标会被过期清理掉）
+*   **颜色分配**：按设备码哈希到 8 色板，冲突时占用避让——第一批测试两个光标撞色了才发现的问题
+*   **点击仲裁**：单人连接时保持传统「移哪打哪」；两人以上时移动只更新虚拟光标，点击先瞬移再执行；不同主控的点击之间加 200ms 互斥锁，防止两个瞬移+点击交错产生鬼畜拖拽；按住拖拽期间独占真实光标直到松开
+*   **被控端 overlay**：Electron 开一个透明、置顶、鼠标穿透的 BrowserWindow，把所有协作者的光标直接画在物理屏幕上——坐在被控电脑前的人也能看到满屏飞来飞去的彩色箭头
 
 验收测试跑出来那一刻很爽：两个浏览器主控、两种颜色的光标在两个画面上像素级同步。
 
@@ -79,9 +79,9 @@ BilldDesk 是 MIT 协议的开源远程控制项目，技术栈是 Vue3 + Koa2 +
 
 这个项目的一个特色是我全程用 Claude Code 做主力开发，但有个原则：**没有真实测试就不算完成**。于是搭了一套自动化验收：
 
-- 被控端 exe 用 `--remote-debugging-port` 启动，暴露 CDP（Chrome DevTools Protocol）
-- 「主控端」是一个 headless Chrome，同样开 CDP，由 Python 脚本驱动它登录、输设备码、输密码、进远控页
-- 验证分两层：CDP 直接读被控端的 Pinia store（会话状态、光标 Map），加上 PowerShell 截屏 + 视觉识别确认 UI
+*   被控端 exe 用 `--remote-debugging-port` 启动，暴露 CDP（Chrome DevTools Protocol）
+*   「主控端」是一个 headless Chrome，同样开 CDP，由 Python 脚本驱动它登录、输设备码、输密码、进远控页
+*   验证分两层：CDP 直接读被控端的 Pinia store（会话状态、光标 Map），加上 PowerShell 截屏 + 视觉识别确认 UI
 
 于是形成了闭环：写完功能 → 脚本发起真实连接 → 真实视频流（1728×1080 ready=4）→ 注入鼠标移动 → `GetCursorPos` 对比物理光标位移 → 截图确认。断网模拟用 `NtSuspendProcess` 挂起主控 Chrome 10 秒；「杀死主控端」就是按命令行特征杀进程——不能 `taskkill /IM chrome.exe`，会把自己的浏览器也杀了（别问我怎么知道的）。
 
@@ -89,19 +89,19 @@ BilldDesk 是 MIT 协议的开源远程控制项目，技术栈是 Vue3 + Koa2 +
 
 ## 踩坑精选
 
-1. **运行中的 exe 会锁住自己的镜像文件**。electron-builder 重新打包时如果客户端正在运行，会卡在最后一步无任何报错。打包前先 taskkill。
-2. **NSIS 是 32 位程序**，打包 200MB+ 的 app.asar 偶发 mmap 失败。无解，重试就好。
-3. **沙箱 preload 不能 require 任何非 electron 模块**。我在 preload 里 `require('os')` 拿机器名，整个 preload 静默失败，客户端所有 IPC 全断——而且没有任何报错提示，是对比 electronAPI 是否存在才定位到的。正确姿势是加一个 IPC handler 到主进程。
-4. **Chrome 对没有 Cache-Control 的 index.html 做启发式缓存**。部署新版本后测试老是「没生效」，先 curl 确认线上 hash 再排查代码。
-5. **localStorage 是按 origin 的**。在 about:blank 注入身份再跳转站点，等于什么都没做。先导航、再注入、再 reload。
-6. **Python 断言 JS 返回的布尔值**：`str(True) == "true"` 永远为 False，因为 Python 是大写开头。低级，但耽误过一轮测试。
+1.  **运行中的 exe 会锁住自己的镜像文件**。electron-builder 重新打包时如果客户端正在运行，会卡在最后一步无任何报错。打包前先 taskkill。
+2.  **NSIS 是 32 位程序**，打包 200MB+ 的 app.asar 偶发 mmap 失败。无解，重试就好。
+3.  **沙箱 preload 不能 require 任何非 electron 模块**。我在 preload 里 `require('os')` 拿机器名，整个 preload 静默失败，客户端所有 IPC 全断——而且没有任何报错提示，是对比 electronAPI 是否存在才定位到的。正确姿势是加一个 IPC handler 到主进程。
+4.  **Chrome 对没有 Cache-Control 的 index.html 做启发式缓存**。部署新版本后测试老是「没生效」，先 curl 确认线上 hash 再排查代码。
+5.  **localStorage 是按 origin 的**。在 about:blank 注入身份再跳转站点，等于什么都没做。先导航、再注入、再 reload。
+6.  **Python 断言 JS 返回的布尔值**：`str(True) == "true"` 永远为 False，因为 Python 是大写开头。低级，但耽误过一轮测试。
 
 ## 天花板：为什么做不到 ToDesk 的锁屏控制
 
 做完了自然会想：ToDesk 锁屏能看能输密码、关机还能远程开机，凭什么？
 
-- **锁屏可看可控**：人家跑的是 Windows 服务（SYSTEM 权限），可以在锁屏时发 SAS 模拟 Ctrl+Alt+Del 调出登录框再注入按键；普通用户进程会被安全桌面（UIPI）拦死，这是操作系统层面的限制，不是代码能绕的
-- **远程开机**：Wake-on-LAN，网卡魔术包，和软件没关系，要主板 BIOS 支持
+*   **锁屏可看可控**：人家跑的是 Windows 服务（SYSTEM 权限），可以在锁屏时发 SAS 模拟 Ctrl+Alt+Del 调出登录框再注入按键；普通用户进程会被安全桌面（UIPI）拦死，这是操作系统层面的限制，不是代码能绕的
+*   **远程开机**：Wake-on-LAN，网卡魔术包，和软件没关系，要主板 BIOS 支持
 
 Electron 应用是用户态的，这些天然做不到。所以项目还有一个并行的新架构（Rust workspace + C++ 采集 agent + Windows 服务），服务化之后才有资格碰这块——那是另一个故事了。
 
