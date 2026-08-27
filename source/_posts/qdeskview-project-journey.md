@@ -1,6 +1,7 @@
 ---
 title: 从开源到自己的远控软件：QdeskView 二次开发全记录
 date: 2026-08-27 23:30:00
+cover: /img/qdeskview-cover.jpg
 categories:
   - 项目
 tags:
