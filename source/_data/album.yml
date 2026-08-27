@@ -1,13 +1,13 @@
 - class_name: 日常碎片
   path_name: /album/daily/
   description: 生活中的随手一拍
-  cover: /img/1787811327574-05_受惊手掌误拍镜头.png
+  cover: /img/1787811424940-05_受惊手掌误拍镜头.png
   top_background: https://picsum.photos/seed/album-daily-bg/1920/480
   type: 2
   rowHeight: 220
   limit: 24
   album_list:
-    - content: ''
+    - content: 女儿真可爱
       date: 2026/08/27
       image:
-        - /img/1787811327574-05_受惊手掌误拍镜头.png
+        - /img/1787811424940-05_受惊手掌误拍镜头.png
