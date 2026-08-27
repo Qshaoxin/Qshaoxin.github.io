@@ -140,7 +140,8 @@ textarea:focus { border-color: var(--main); }
 .thumb img { width:76px; height:76px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
 .thumb .rm { position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%; background:#e05a5a; color:#fff;
   border:none; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; }
-.album-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+.icn { height: 1.2em; width: auto; vertical-align: -0.22em; border-radius: 3px; }
+.album-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr)); gap:18px; }
 .album-card { border-radius:12px; overflow:hidden; cursor:pointer; background:#fafbff; border:1.5px solid transparent; transition:all .2s; }
 .album-card:hover { border-color:rgba(66,90,239,.4); transform:translateY(-2px); }
 .album-card .cover { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
@@ -150,7 +151,7 @@ textarea:focus { border-color: var(--main); }
 .album-new { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
   border:2px dashed var(--border); border-radius:12px; min-height:200px; cursor:pointer; color:var(--text-light); transition:all .2s; }
 .album-new:hover { border-color:var(--main); color:var(--main); }
-.photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+.photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr)); gap:12px; }
 .photo-cell { position:relative; }
 .photo-cell img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; display:block; }
 .photo-cell .cap { font-size:.74rem; color:var(--text-light); margin-top:4px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -185,22 +186,23 @@ textarea:focus { border-color: var(--main); }
     <span id="dirty-dot"></span>
     <button class="btn btn-ghost btn-sm" id="btn-free" onclick="toggleFreeMode()">🪟 自由布局</button>
     <button class="btn btn-ghost btn-sm" onclick="resetFreeLayout()" title="清空自由布局的摆位" style="display:none" id="btn-free-reset">↺ 重置</button>
-    <button class="btn btn-main" id="btn-publish" onclick="publish()">🚀 一键发布</button>
+    <button class="btn btn-main" id="btn-publish" onclick="publish()"><span data-icon="btn-publish">🚀</span> 一键发布</button>
   </div>
 </nav>
 
 <div class="tabs">
-  <button class="tab active" data-tab="posts" onclick="switchTab('posts')">📄 文章</button>
-  <button class="tab" data-tab="essays" onclick="switchTab('essays')">💬 闲言碎语</button>
-  <button class="tab" data-tab="albums" onclick="switchTab('albums')">🖼 相册集</button>
-  <button class="tab" data-tab="pages" onclick="switchTab('pages')">📑 页面</button>
-  <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ 站点设置</button>
+  <button class="tab active" data-tab="posts" onclick="switchTab('posts')"><span data-icon="tab-posts">📄</span> 文章</button>
+  <button class="tab" data-tab="essays" onclick="switchTab('essays')"><span data-icon="tab-essays">💬</span> 闲言碎语</button>
+  <button class="tab" data-tab="albums" onclick="switchTab('albums')"><span data-icon="tab-albums">🖼</span> 相册集</button>
+  <button class="tab" data-tab="pages" onclick="switchTab('pages')"><span data-icon="tab-pages">📑</span> 页面</button>
+  <button class="tab" data-tab="settings" onclick="switchTab('settings')"><span data-icon="tab-settings">⚙️</span> 站点设置</button>
+  <button class="tab" data-tab="look" onclick="switchTab('look')"><span data-icon="tab-look">🎨</span> 外观定制</button>
 </div>
 
 <!-- 文章 -->
 <div class="wrap view on" id="view-posts">
   <div class="card">
-    <button class="btn btn-ghost new-btn" onclick="newPost()">＋ 新建文章</button>
+    <button class="btn btn-ghost new-btn" onclick="newPost()"><span data-icon="btn-new">＋</span> 新建文章</button>
     <div class="card-title"><span class="tip">ARCHIVES</span><h2>全部文章</h2><span id="post-count" style="color:var(--text-light);font-size:.82rem"></span></div>
     <div id="post-list"></div>
   </div>
@@ -240,8 +242,8 @@ textarea:focus { border-color: var(--main); }
             <span class="tb-sep"></span>
             <button class="tb" onclick="insertCode()" title="代码块">&lt;/&gt;</button>
             <button class="tb" onclick="insertLink()" title="链接">🔗</button>
-            <button class="tb" onclick="pickPostImage()" title="上传图片">📷</button>
-            <button class="tb" onclick="pickPostLib()" title="从图片库选图">🖼</button>
+            <button class="tb" onclick="pickPostImage()" title="上传图片"><span data-icon="btn-cam">📷</span></button>
+            <button class="tb" onclick="pickPostLib()" title="从图片库选图"><span data-icon="btn-lib">🖼</span></button>
           </div>
           <div id="rich-editor" class="md" contenteditable="true"></div>
         </div>
@@ -251,10 +253,10 @@ textarea:focus { border-color: var(--main); }
       <div class="ed-footer">
         <div class="left">
           <button class="btn btn-ghost btn-sm" id="btn-mode" onclick="toggleMode()">📝 源码模式</button>
-          <button class="btn btn-danger-ghost btn-sm" onclick="delPost()">🗑 删除</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="delPost()"><span data-icon="btn-del">🗑</span> 删除</button>
         </div>
         <span id="save-hint">✓ 已保存</span>
-        <button class="btn btn-main" onclick="save()">💾 保存</button>
+        <button class="btn btn-main" onclick="save()"><span data-icon="btn-save">💾</span> 保存</button>
       </div>
     </div>
   </div>
@@ -340,6 +342,51 @@ textarea:focus { border-color: var(--main); }
   </div>
 </div>
 
+<!-- 外观定制 -->
+<div class="view" id="view-look">
+  <div class="settings-grid">
+    <div class="card set-form">
+      <div class="card-title"><span class="tip">COLOR</span><h2>配色与质感</h2></div>
+      <div class="field"><label>主色调（按钮、链接、高亮）</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="ap-color" style="width:52px;height:38px;border:1.5px solid var(--border);border-radius:10px;background:#fff;padding:2px;cursor:pointer">
+          <input type="text" id="ap-color-hex" placeholder="#425aef" style="flex:1">
+          <button class="btn btn-ghost btn-sm" onclick="resetColor()">还原</button>
+        </div>
+      </div>
+      <div class="field"><label>卡片圆角：<span id="ap-radius-val">12</span> px</label>
+        <input type="range" id="ap-radius" min="0" max="24" value="12" style="width:100%;accent-color:var(--main)">
+      </div>
+      <div class="field"><label>全站背景图（留空则用主题默认）</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="ap-bg" placeholder="图片地址，或点右侧上传" style="flex:1">
+          <button class="btn btn-ghost btn-sm" onclick="pickBgImage()">⬆ 上传</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="$('ap-bg').value='';window._apbg=''">✕</button>
+        </div>
+        <div style="margin-top:6px"><img id="ap-bg-preview" style="max-height:90px;border-radius:10px;display:none" /></div>
+      </div>
+    </div>
+    <div class="card set-form">
+      <div class="card-title"><span class="tip">LAYOUT</span><h2>首页模块</h2></div>
+      <div class="field"><label>显示 / 隐藏</label>
+        <div id="ap-hide-list" style="display:flex;flex-direction:column;gap:8px;font-size:.9rem"></div>
+      </div>
+      <div class="field"><label>排列顺序（从上到下）</label>
+        <div id="ap-order-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div style="font-size:.78rem;color:var(--text-light);margin-top:4px">选中模块后用 ↑ ↓ 调整顺序</div>
+      </div>
+    </div>
+    <div class="card set-form" style="grid-column:1/-1">
+      <div class="card-title"><span class="tip">CSS</span><h2>自定义样式（懂 CSS 可随意改网站外观）</h2></div>
+      <textarea id="ap-custom" rows="6" placeholder="例如：.recent-post-item{box-shadow:none} 想要什么效果告诉我，我也可以帮你写" style="font-family:Consolas,monospace;font-size:.85rem"></textarea>
+    </div>
+  </div>
+  <div style="max-width:1280px;margin:-10px auto 40px;padding:0 24px;display:flex;justify-content:flex-end;gap:10px">
+    <span style="font-size:.8rem;color:var(--text-light);align-self:center">保存后需「一键发布」才会更新线上网站</span>
+    <button class="btn btn-main" onclick="saveAppearance()">💾 保存外观</button>
+  </div>
+</div>
+
 <!-- 设置 -->
 <div class="view" id="view-settings">
   <div class="settings-grid" id="settings-form"></div>
@@ -412,8 +459,90 @@ function switchTab(name) {
   if (name === "albums") loadAlbums();
   if (name === "pages") loadPages();
   if (name === "settings") loadSettings();
+  if (name === "look") loadAppearance();
   if (name === "posts") refresh();
 }
+
+/* ---------- 外观定制 ---------- */
+const AP_HIDE = [
+  ["bbTimeList", "顶部即刻碎语滚动条"],
+  ["home_top", "首页横幅（大标题+技能墙）"],
+  ["swiper", "首页文章轮播卡"],
+  ["category", "首页分类快捷按钮"],
+  ["aside", "右侧边栏（头像/公告等）"],
+];
+const AP_ORDER_NAME = { bbTimeList: "即刻碎语条", home_top: "首页横幅", "recent-posts": "文章列表" };
+let apOrder = ["bbTimeList", "home_top", "recent-posts"], apSelected = 0;
+async function loadAppearance() {
+  const d = await api("/api/appearance");
+  const a = d.appearance || {};
+  $("ap-color").value = a.color || "#425aef";
+  $("ap-color-hex").value = a.color || "";
+  $("ap-radius").value = a.radius || 12;
+  $("ap-radius-val").textContent = a.radius || 12;
+  $("ap-bg").value = a.bg || "";
+  window._apbg = a.bg || "";
+  updateBgPreview();
+  $("ap-custom").value = a.custom || "";
+  const hide = a.hide || [];
+  const box = $("ap-hide-list");
+  box.innerHTML = "";
+  AP_HIDE.forEach(([key, label]) => {
+    const l = document.createElement("label");
+    l.style.display = "flex";
+    l.style.alignItems = "center";
+    l.style.gap = "8px";
+    l.style.cursor = "pointer";
+    l.innerHTML = '<input type="checkbox" value="' + key + '"' + (hide.includes(key) ? " checked" : "") + '> ' + label;
+    box.appendChild(l);
+  });
+  apOrder = Array.isArray(a.order) && a.order.length === 3 ? a.order : ["bbTimeList", "home_top", "recent-posts"];
+  apSelected = 0;
+  renderApOrder();
+}
+function renderApOrder() {
+  const box = $("ap-order-list");
+  box.innerHTML = "";
+  apOrder.forEach((id, i) => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;align-items:center;font-size:.9rem;padding:7px 10px;border-radius:8px;background:" + (i === apSelected ? "rgba(66,90,239,.1)" : "#fafbff") + ";cursor:pointer";
+    row.innerHTML = "<span style='color:var(--text-light)'>" + (i + 1) + ".</span> " + (AP_ORDER_NAME[id] || id) +
+      "<span style='margin-left:auto;display:flex;gap:4px'><button class='btn btn-ghost btn-sm' style='padding:2px 9px'>↑</button><button class='btn btn-ghost btn-sm' style='padding:2px 9px'>↓</button></span>";
+    row.onclick = () => { apSelected = i; renderApOrder(); };
+    const [up, dn] = row.querySelectorAll("button");
+    up.onclick = e => { e.stopPropagation(); if (i > 0) { [apOrder[i - 1], apOrder[i]] = [apOrder[i], apOrder[i - 1]]; apSelected = i - 1; renderApOrder(); } };
+    dn.onclick = e => { e.stopPropagation(); if (i < apOrder.length - 1) { [apOrder[i + 1], apOrder[i]] = [apOrder[i], apOrder[i + 1]]; apSelected = i + 1; renderApOrder(); } };
+    box.appendChild(row);
+  });
+}
+function resetColor() { $("ap-color").value = "#425aef"; $("ap-color-hex").value = ""; }
+function updateBgPreview() {
+  const v = window._apbg || "";
+  const img = $("ap-bg-preview");
+  if (v) { img.src = v; img.style.display = "block"; } else img.style.display = "none";
+}
+function pickBgImage() {
+  pickFiles(urls => { window._apbg = urls[0]; $("ap-bg").value = urls[0]; updateBgPreview(); });
+}
+async function saveAppearance() {
+  const hide = Array.from($("ap-hide-list").querySelectorAll("input:checked")).map(i => i.value);
+  const color = $("ap-color-hex").value.trim();
+  await post("/api/appearance/save", {
+    appearance: {
+      color: /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "",
+      bg: $("ap-bg").value.trim(),
+      radius: Number($("ap-radius").value) || 12,
+      hide, order: apOrder,
+      custom: $("ap-custom").value,
+    },
+  });
+  alert("✅ 外观已保存，点「一键发布」后线上生效");
+  refreshStatus();
+}
+$("ap-color").addEventListener("input", () => { $("ap-color-hex").value = $("ap-color").value; });
+$("ap-color-hex").addEventListener("input", () => { const v = $("ap-color-hex").value.trim(); if (/^#[0-9a-fA-F]{6}$/.test(v)) $("ap-color").value = v; });
+$("ap-radius").addEventListener("input", () => $("ap-radius-val").textContent = $("ap-radius").value);
+$("ap-bg").addEventListener("input", () => { window._apbg = $("ap-bg").value.trim(); updateBgPreview(); });
 
 /* ---------- 文章 ---------- */
 async function refresh() {
@@ -753,6 +882,57 @@ async function loadSettings() {
   }
   const c5 = card("MUSIC", "音乐馆");
   fld(c5, "网易云歌单 ID", "set-music", s.music.id, "如 8152976493");
+  const c6 = card("ICONS", "界面图标（上传图片替换 emoji）");
+  Object.keys(SLOT_EMOJI).forEach(key => {
+    const row = document.createElement("div");
+    row.className = "field";
+    row.style.flexDirection = "row";
+    row.style.alignItems = "center";
+    row.style.gap = "10px";
+    row.innerHTML = '<span data-icon="' + key + '" style="font-size:1.2rem;min-width:28px;text-align:center"></span>' +
+      '<span style="flex:1;font-size:.85rem;color:var(--text-light)">' + SLOT_TITLE[key] + '</span>' +
+      '<button class="btn btn-ghost btn-sm">⬆ 上传</button><button class="btn btn-danger-ghost btn-sm">还原</button>';
+    const [up, rst] = row.querySelectorAll("button");
+    up.onclick = () => pickIconFile(key);
+    rst.onclick = async () => { await post("/api/icon/delete", { key }); await refreshIcons(); };
+    c6.appendChild(row);
+  });
+}
+
+/* ---------- 图标管理 ---------- */
+const SLOT_EMOJI = {
+  "tab-posts": "📄", "tab-essays": "💬", "tab-albums": "🖼", "tab-pages": "📑", "tab-settings": "⚙️",
+  "btn-publish": "🚀", "btn-save": "💾", "btn-new": "＋", "btn-del": "🗑", "btn-cam": "📷", "btn-lib": "🖼",
+};
+const SLOT_TITLE = {
+  "tab-posts": "标签页：文章", "tab-essays": "标签页：闲言碎语", "tab-albums": "标签页：相册集",
+  "tab-pages": "标签页：页面", "tab-settings": "标签页：站点设置", "btn-publish": "按钮：一键发布",
+  "btn-save": "按钮：保存", "btn-new": "按钮：新建文章", "btn-del": "按钮：删除", "btn-cam": "按钮：上传图片", "btn-lib": "按钮：图片库",
+};
+let iconMap = {};
+async function refreshIcons() {
+  try {
+    const d = await api("/api/icons");
+    iconMap = {};
+    d.icons.forEach(n => { iconMap[n.replace(/\.[^.]+$/, "")] = "/img/icons/" + n; });
+  } catch (e) { iconMap = {}; }
+  document.querySelectorAll("[data-icon]").forEach(el => {
+    const k = el.dataset.icon;
+    if (iconMap[k]) el.innerHTML = '<img class="icn" src="' + iconMap[k] + '?v=' + Date.now() + '" alt="">';
+    else el.textContent = SLOT_EMOJI[k] || "";
+  });
+}
+function pickIconFile(slot) {
+  const inp = $("file-pick");
+  inp.value = "";
+  inp.onchange = async () => {
+    if (!inp.files.length) return;
+    const f = inp.files[0];
+    const buf = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsArrayBuffer(f); });
+    await api("/api/upload?dir=icons&slot=" + slot + "&name=" + encodeURIComponent(f.name), { method: "POST", body: buf });
+    await refreshIcons();
+  };
+  inp.click();
 }
 function pickAvatar() {
   pickFiles(urls => {
@@ -836,6 +1016,7 @@ async function publish() {
 function closePub() { $("mask").classList.remove("show"); }
 
 refresh();
+refreshIcons();
 
 /* ---------- 可拖拽布局 ---------- */
 (function initSplitter() {

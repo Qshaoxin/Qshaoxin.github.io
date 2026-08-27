@@ -7,6 +7,7 @@ const ROOT = __dirname;
 const POSTS_DIR = path.join(ROOT, "source", "_posts");
 const DATA_DIR = path.join(ROOT, "source", "_data");
 const IMG_DIR = path.join(ROOT, "source", "img");
+const ICON_DIR = path.join(IMG_DIR, "icons");
 const PORT = 5177;
 
 let yaml = null;
@@ -314,14 +315,49 @@ function settingsSave(s) {
 async function handleUpload(req, url) {
   const rawName = url.searchParams.get("name") || "image.png";
   const ext = (path.extname(rawName) || ".png").toLowerCase().replace(/[^.a-z0-9]/g, "") || ".png";
-  const base = slugify(path.basename(rawName, path.extname(rawName))) || "image";
-  const file = `${Date.now()}-${base}${ext}`;
+  const toIcons = url.searchParams.get("dir") === "icons";
+  const slot = (url.searchParams.get("slot") || "").replace(/[^\w-]/g, "");
+  const dir = toIcons ? ICON_DIR : IMG_DIR;
+  const base = slot || (slugify(path.basename(rawName, path.extname(rawName))) || "image");
+  const file = slot ? `${base}${ext}` : `${Date.now()}-${base}${ext}`;
   const buf = await readBody(req);
   if (!buf.length) throw new Error("空文件");
   if (buf.length > 15 * 1024 * 1024) throw new Error("图片超过 15MB");
-  fs.mkdirSync(IMG_DIR, { recursive: true });
-  fs.writeFileSync(path.join(IMG_DIR, file), buf);
-  return { url: "/img/" + file };
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, file), buf);
+  return { url: (toIcons ? "/img/icons/" : "/img/") + file };
+}
+
+/* ---------- 外观定制 ---------- */
+const APPEAR_FILE = path.join(DATA_DIR, "appearance.json");
+const CUSTOM_CSS = path.join(ROOT, "source", "css", "custom.css");
+function readAppearance() {
+  try { return JSON.parse(fs.readFileSync(APPEAR_FILE, "utf8")); }
+  catch (e) { return { color: "", bg: "", radius: "", hide: [], order: ["bbTimeList", "home_top", "recent-posts"], custom: "" }; }
+}
+function compileAppearance(a) {
+  const css = [];
+  if (a.color) css.push(`:root{--anzhiyu-main:${a.color}}`);
+  if (a.bg) css.push(`#web_bg{background:url('${a.bg}') center / cover no-repeat fixed !important}`);
+  if (a.radius) css.push(`.card,#page,.recent-post-item,.author-content,#album-swiper,#archive .article-sort-item{border-radius:${a.radius}px !important}`);
+  const hide = a.hide || [];
+  if (hide.includes("bbTimeList")) css.push("#bbTimeList{display:none !important}");
+  if (hide.includes("home_top")) css.push("#home_top{display:none !important}");
+  if (hide.includes("swiper")) css.push("#swiper_container_blog,#topPostGroup{display:none !important}");
+  if (hide.includes("category")) css.push(".categoryGroup{display:none !important}");
+  if (hide.includes("aside")) css.push("#aside-content{display:none !important}");
+  if (Array.isArray(a.order) && a.order.length === 3) {
+    css.push("#blog-container{display:flex;flex-direction:column}");
+    a.order.forEach((id, i) => css.push(`#${id}{order:${i}}`));
+  }
+  if (a.custom) css.push(String(a.custom));
+  return "/* 由博客后台外观定制生成 */\n" + css.join("\n") + "\n";
+}
+function writeAppearance(a) {
+  fs.mkdirSync(path.dirname(APPEAR_FILE), { recursive: true });
+  fs.writeFileSync(APPEAR_FILE, JSON.stringify(a, null, 2), "utf8");
+  fs.mkdirSync(path.dirname(CUSTOM_CSS), { recursive: true });
+  fs.writeFileSync(CUSTOM_CSS, compileAppearance(a), "utf8");
 }
 
 /* ---------- HTTP ---------- */
@@ -334,8 +370,10 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
   try {
     if (req.method === "GET" && url.pathname.startsWith("/img/")) {
-      const rel = decodeURIComponent(url.pathname.replace(/^\/img\//, "")).replace(/[/\\\\]/g, path.sep);
-      const fp = path.join(IMG_DIR, path.basename(rel));
+      const sub = decodeURIComponent(url.pathname.replace(/^\/img\//, ""));
+      const inIcons = sub.startsWith("icons/");
+      const base = path.basename(sub.replace(/^icons\//, "").replace(/[/\\]/g, ""));
+      const fp = path.join(inIcons ? ICON_DIR : IMG_DIR, base);
       if (!fs.existsSync(fp) || !fs.statSync(fp).isFile()) { res.writeHead(404); return res.end(); }
       const ext = path.extname(fp).toLowerCase();
       const mime = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".bmp": "image/bmp" }[ext] || "application/octet-stream";
@@ -383,6 +421,12 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/api/page") return json(res, 200, pageRead(url.searchParams.get("key")));
     if (req.method === "POST" && url.pathname === "/api/page/save") { const b = await readJson(req); pageSave(b.key, b.title, b.content); return json(res, 200, { ok: true }); }
     /* 设置 */
+    if (req.method === "GET" && url.pathname === "/api/appearance") return json(res, 200, { appearance: readAppearance() });
+    if (req.method === "POST" && url.pathname === "/api/appearance/save") {
+      const b = await readJson(req);
+      writeAppearance(b.appearance || {});
+      return json(res, 200, { ok: true });
+    }
     if (req.method === "GET" && url.pathname === "/api/settings") return json(res, 200, settingsRead());
     if (req.method === "POST" && url.pathname === "/api/settings/save") { settingsSave((await readJson(req)).settings); return json(res, 200, { ok: true }); }
     /* 图片库 */
@@ -392,6 +436,19 @@ const server = http.createServer(async (req, res) => {
         .map(f => ({ url: "/img/" + f, name: f, size: fs.statSync(path.join(IMG_DIR, f)).size }))
         .sort((a, b) => b.name.localeCompare(a.name));
       return json(res, 200, { images: imgs });
+    }
+    /* 图标管理 */
+    if (req.method === "GET" && url.pathname === "/api/icons") {
+      const dir = fs.existsSync(ICON_DIR) ? fs.readdirSync(ICON_DIR) : [];
+      return json(res, 200, { icons: dir.filter(f => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(f)) });
+    }
+    if (req.method === "POST" && url.pathname === "/api/icon/delete") {
+      const b = await readJson(req);
+      const key = String(b.key || "").replace(/[^\w-]/g, "");
+      if (!key) return json(res, 400, { error: "bad key" });
+      const dir = fs.existsSync(ICON_DIR) ? fs.readdirSync(ICON_DIR) : [];
+      dir.filter(f => f.replace(/\.[^.]+$/, "") === key).forEach(f => fs.unlinkSync(path.join(ICON_DIR, f)));
+      return json(res, 200, { ok: true });
     }
     /* 上传 */
     if (req.method === "POST" && url.pathname === "/api/upload") return json(res, 200, await handleUpload(req, url));

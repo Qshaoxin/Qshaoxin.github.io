@@ -1,0 +1,12 @@
+{
+  "color": "",
+  "bg": "",
+  "radius": 12,
+  "hide": [],
+  "order": [
+    "bbTimeList",
+    "home_top",
+    "recent-posts"
+  ],
+  "custom": ""
+}

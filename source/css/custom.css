@@ -1,0 +1,6 @@
+/* 由博客后台外观定制生成 */
+.card,#page,.recent-post-item,.author-content,#album-swiper,#archive .article-sort-item{border-radius:12px !important}
+#blog-container{display:flex;flex-direction:column}
+#bbTimeList{order:0}
+#home_top{order:1}
+#recent-posts{order:2}
